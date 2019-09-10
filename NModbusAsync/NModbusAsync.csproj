@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>NModbusAsync is a striped to the bone version of NModbus library.
 The only thing that left is Modbus master over TCP.
-The main difference and advantage of NModbusAsync is that all operations now  utilize only asynchronous I/O.</Description>
+The main difference and advantage of NModbusAsync is that all operations now utilize only asynchronous I/O.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/wolf8196/NModbusAsync</PackageProjectUrl>
     <RepositoryUrl>https://github.com/wolf8196/NModbusAsync</RepositoryUrl>
