@@ -8,12 +8,13 @@ The main difference and advantage of NModbusAsync is that all operations now uti
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/wolf8196/NModbusAsync</PackageProjectUrl>
     <RepositoryUrl>https://github.com/wolf8196/NModbusAsync</RepositoryUrl>
-    <PackageTags>modbus nmodbus tcp master</PackageTags>
+    <PackageTags>modbus nmodbus tcp master async io</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Copyright>Copyright (c) 2019 Roman Vovk</Copyright>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>nmodbusasync_key.pfx</AssemblyOriginatorKeyFile>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
+    <Authors>Roman Vovk</Authors>
   </PropertyGroup>
 
   <ItemGroup>
