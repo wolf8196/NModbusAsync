@@ -6,7 +6,7 @@ using NModbusAsync.Utility;
 
 namespace NModbusAsync.IO
 {
-    internal class TcpClientAdapter : IStreamResource
+    internal class TcpClientAdapter<TResource> : IStreamResource<TResource> where TResource : TcpClient
     {
         private TcpClient tcpClient;
 
@@ -26,6 +26,8 @@ namespace NModbusAsync.IO
             get => tcpClient.GetStream().WriteTimeout;
             set => tcpClient.GetStream().WriteTimeout = value;
         }
+
+        public TResource UnderlyingResource => tcpClient as TResource;
 
         public Task WriteAsync(byte[] buffer, int offset, int count)
         {

@@ -4,6 +4,6 @@ namespace NModbusAsync
 {
     public interface IModbusFactory
     {
-        IModbusMaster CreateMaster(TcpClient client);
+        IModbusMaster CreateMaster<T>(T tcpClient) where T : TcpClient;
     }
 }

@@ -14,9 +14,9 @@ namespace NModbusAsync
             this.logger = logger ?? NullModbusLogger.Instance;
         }
 
-        public IModbusMaster CreateMaster(TcpClient client)
+        public IModbusMaster CreateMaster<T>(T tcpClient) where T : TcpClient
         {
-            var adapter = new TcpClientAdapter(client);
+            var adapter = new TcpClientAdapter<T>(tcpClient);
 
             var transport = new ModbusIpTransport(adapter, logger);
 
