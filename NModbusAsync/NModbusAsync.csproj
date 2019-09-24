@@ -13,7 +13,7 @@ The main difference and advantage of NModbusAsync is that all operations now uti
     <Copyright>Copyright (c) 2019 Roman Vovk</Copyright>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>nmodbusasync_key.pfx</AssemblyOriginatorKeyFile>
-    <Version>1.0.3</Version>
+    <Version>1.0.5</Version>
     <Authors>Roman Vovk</Authors>
   </PropertyGroup>
 

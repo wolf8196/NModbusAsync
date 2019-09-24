@@ -36,7 +36,8 @@ namespace NModbusAsync.IO
 
         public Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken token)
         {
-            return tcpClient.GetStream().WriteAsync(buffer, offset, count, token);
+            // Move back to sync I/O as there is no timeout in NetworkStream
+            return Task.Run(() => tcpClient.GetStream().Write(buffer, offset, count), token);
         }
 
         public Task<int> ReadAsync(byte[] buffer, int offset, int count)
@@ -46,7 +47,8 @@ namespace NModbusAsync.IO
 
         public Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token)
         {
-            return tcpClient.GetStream().ReadAsync(buffer, offset, count, token);
+            // Move back to sync I/O as there is no timeout in NetworkStream
+            return Task.Run(() => tcpClient.GetStream().Read(buffer, offset, count), token);
         }
 
         public Task FlushAsync()
