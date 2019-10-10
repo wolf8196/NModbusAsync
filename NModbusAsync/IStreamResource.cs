@@ -10,16 +10,10 @@ namespace NModbusAsync
 
         int WriteTimeout { get; set; }
 
-        Task FlushAsync();
+        Task FlushAsync(CancellationToken token = default);
 
-        Task FlushAsync(CancellationToken token);
+        Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token = default);
 
-        Task<int> ReadAsync(byte[] buffer, int offset, int count);
-
-        Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token);
-
-        Task WriteAsync(byte[] buffer, int offset, int count);
-
-        Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken token);
+        Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken token = default);
     }
 }

@@ -67,11 +67,6 @@ namespace NModbusAsync.IO
             DisposableUtility.Dispose(ref streamResource);
         }
 
-        public virtual Task<T> UnicastMessageAsync<T>(IModbusMessage message) where T : IModbusMessage, new()
-        {
-            return UnicastMessageAsync<T>(message, default);
-        }
-
         public virtual async Task<T> UnicastMessageAsync<T>(IModbusMessage message, CancellationToken token) where T : IModbusMessage, new()
         {
             IModbusMessage response = null;
@@ -157,13 +152,9 @@ namespace NModbusAsync.IO
             return (T)response;
         }
 
-        public abstract Task<byte[]> ReadRequestAsync();
-
         public abstract Task<byte[]> ReadRequestAsync(CancellationToken token);
 
         public abstract byte[] BuildMessageFrame(IModbusMessage message);
-
-        public abstract Task WriteAsync(IModbusMessage message);
 
         public abstract Task WriteAsync(IModbusMessage message, CancellationToken token);
 

@@ -30,11 +30,6 @@ namespace NModbusAsync.IO
             return messageBody;
         }
 
-        public override Task WriteAsync(IModbusMessage message)
-        {
-            return WriteAsync(message, default);
-        }
-
         public override Task WriteAsync(IModbusMessage message, CancellationToken token)
         {
             message.TransactionId = GetNewTransactionId();
@@ -43,11 +38,6 @@ namespace NModbusAsync.IO
             Logger.Log(LoggingLevel.Trace, $"TX: {string.Join(", ", frame)}");
 
             return StreamResource.WriteAsync(frame, 0, frame.Length, token);
-        }
-
-        public override Task<byte[]> ReadRequestAsync()
-        {
-            return ReadRequestAsync(default);
         }
 
         public override Task<byte[]> ReadRequestAsync(CancellationToken token)

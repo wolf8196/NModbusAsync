@@ -29,31 +29,16 @@ namespace NModbusAsync.IO
 
         public TResource UnderlyingResource => tcpClient as TResource;
 
-        public Task WriteAsync(byte[] buffer, int offset, int count)
-        {
-            return WriteAsync(buffer, offset, count, default);
-        }
-
         public Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken token)
         {
             // Move back to sync I/O as there is no timeout in NetworkStream
             return Task.Run(() => tcpClient.GetStream().Write(buffer, offset, count), token);
         }
 
-        public Task<int> ReadAsync(byte[] buffer, int offset, int count)
-        {
-            return ReadAsync(buffer, offset, count, default);
-        }
-
         public Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token)
         {
             // Move back to sync I/O as there is no timeout in NetworkStream
             return Task.Run(() => tcpClient.GetStream().Read(buffer, offset, count), token);
-        }
-
-        public Task FlushAsync()
-        {
-            return FlushAsync(default);
         }
 
         public Task FlushAsync(CancellationToken token)

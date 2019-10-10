@@ -14,11 +14,6 @@ namespace NModbusAsync.Devices
         {
         }
 
-        public Task<bool[]> ReadCoilsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints)
-        {
-            return ReadCoilsAsync(slaveAddress, startAddress, numberOfPoints, default);
-        }
-
         public Task<bool[]> ReadCoilsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token)
         {
             ValidateNumberOfPoints(numberOfPoints, 2000);
@@ -30,11 +25,6 @@ namespace NModbusAsync.Devices
                 numberOfPoints);
 
             return PerformReadDiscretesAsync(request, token);
-        }
-
-        public Task<bool[]> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints)
-        {
-            return ReadInputsAsync(slaveAddress, startAddress, numberOfPoints, default);
         }
 
         public Task<bool[]> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token)
@@ -50,11 +40,6 @@ namespace NModbusAsync.Devices
             return PerformReadDiscretesAsync(request, token);
         }
 
-        public Task<ushort[]> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints)
-        {
-            return ReadHoldingRegistersAsync(slaveAddress, startAddress, numberOfPoints, default);
-        }
-
         public Task<ushort[]> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token)
         {
             ValidateNumberOfPoints(numberOfPoints, 125);
@@ -66,11 +51,6 @@ namespace NModbusAsync.Devices
                 numberOfPoints);
 
             return PerformReadRegistersAsync(request, token);
-        }
-
-        public Task<ushort[]> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints)
-        {
-            return ReadInputRegistersAsync(slaveAddress, startAddress, numberOfPoints, default);
         }
 
         public Task<ushort[]> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token)
@@ -86,20 +66,10 @@ namespace NModbusAsync.Devices
             return PerformReadRegistersAsync(request, token);
         }
 
-        public Task WriteSingleCoilAsync(byte slaveAddress, ushort coilAddress, bool value)
-        {
-            return WriteSingleCoilAsync(slaveAddress, coilAddress, value, default);
-        }
-
         public Task WriteSingleCoilAsync(byte slaveAddress, ushort coilAddress, bool value, CancellationToken token)
         {
             var request = new WriteSingleCoilRequestResponse(slaveAddress, coilAddress, value);
             return Transport.UnicastMessageAsync<WriteSingleCoilRequestResponse>(request, token);
-        }
-
-        public Task WriteSingleRegisterAsync(byte slaveAddress, ushort registerAddress, ushort value)
-        {
-            return WriteSingleRegisterAsync(slaveAddress, registerAddress, value, default);
         }
 
         public Task WriteSingleRegisterAsync(byte slaveAddress, ushort registerAddress, ushort value, CancellationToken token)
@@ -112,11 +82,6 @@ namespace NModbusAsync.Devices
             return Transport.UnicastMessageAsync<WriteSingleRegisterRequestResponse>(request, token);
         }
 
-        public Task WriteMultipleRegistersAsync(byte slaveAddress, ushort startAddress, ushort[] data)
-        {
-            return WriteMultipleRegistersAsync(slaveAddress, startAddress, data, default);
-        }
-
         public Task WriteMultipleRegistersAsync(byte slaveAddress, ushort startAddress, ushort[] data, CancellationToken token)
         {
             ValidateData("data", data, 123);
@@ -127,11 +92,6 @@ namespace NModbusAsync.Devices
                 new RegisterCollection(data));
 
             return Transport.UnicastMessageAsync<WriteMultipleRegistersResponse>(request, token);
-        }
-
-        public Task WriteMultipleCoilsAsync(byte slaveAddress, ushort startAddress, bool[] data)
-        {
-            return WriteMultipleCoilsAsync(slaveAddress, startAddress, data, default);
         }
 
         public Task WriteMultipleCoilsAsync(byte slaveAddress, ushort startAddress, bool[] data, CancellationToken token)
