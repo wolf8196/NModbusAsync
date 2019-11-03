@@ -3,26 +3,27 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using NModbusAsync.Message;
-using NModbusAsync.Utility;
+using NModbusAsync.Messages;
 
 namespace NModbusAsync.IO
 {
     internal abstract class ModbusTransport : IModbusTransport
     {
-        private SemaphoreSlim semaphoreSlim;
-        private int waitToRetryMilliseconds;
-        private IStreamResource streamResource;
+        private readonly SemaphoreSlim semaphoreSlim;
 
-        internal ModbusTransport(IStreamResource streamResource, IModbusLogger logger)
+        private int waitToRetryMilliseconds;
+
+        protected ModbusTransport(IPipeResource pipeResource, IModbusLogger logger)
         {
-            this.streamResource = streamResource ?? throw new ArgumentNullException(nameof(streamResource));
+            PipeResource = pipeResource ?? throw new ArgumentNullException(nameof(pipeResource));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             semaphoreSlim = new SemaphoreSlim(1, 1);
-            waitToRetryMilliseconds = Constants.DefaultWaitToRetryMilliseconds;
-            Retries = Constants.DefaultRetries;
         }
+
+        public int ReadTimeout { get => PipeResource.ReadTimeout; set => PipeResource.ReadTimeout = value; }
+
+        public int WriteTimeout { get => PipeResource.WriteTimeout; set => PipeResource.WriteTimeout = value; }
 
         public int Retries { get; set; }
 
@@ -32,44 +33,30 @@ namespace NModbusAsync.IO
 
         public int WaitToRetryMilliseconds
         {
-            get => waitToRetryMilliseconds;
+            get
+            {
+                return waitToRetryMilliseconds;
+            }
 
             set
             {
-                if (value < 0)
+                if (value < Timeout.Infinite)
                 {
-                    throw new ArgumentException(Constants.WaitRetryGreaterThanZero);
+                    throw new ArgumentOutOfRangeException(nameof(value), "The value needs to be either -1 (signifying an infinite timeout), 0 or a positive integer");
                 }
 
                 waitToRetryMilliseconds = value;
             }
         }
 
-        public int ReadTimeout
-        {
-            get => StreamResource.ReadTimeout;
-            set => StreamResource.ReadTimeout = value;
-        }
-
-        public int WriteTimeout
-        {
-            get => StreamResource.WriteTimeout;
-            set => StreamResource.WriteTimeout = value;
-        }
-
-        public IStreamResource StreamResource => streamResource;
+        public IPipeResource PipeResource { get; }
 
         protected IModbusLogger Logger { get; }
 
-        public void Dispose()
+        public async Task<TResponse> SendAsync<TResponse>(IModbusRequest request, CancellationToken token = default)
+            where TResponse : IModbusResponse, new()
         {
-            DisposableUtility.Dispose(ref semaphoreSlim);
-            DisposableUtility.Dispose(ref streamResource);
-        }
-
-        public virtual async Task<T> UnicastMessageAsync<T>(IModbusMessage message, CancellationToken token) where T : IModbusMessage, new()
-        {
-            IModbusMessage response = null;
+            IModbusResponse response = null;
             int attempt = 1;
             bool success = false;
 
@@ -80,22 +67,22 @@ namespace NModbusAsync.IO
                     await semaphoreSlim.WaitAsync(token).ConfigureAwait(false);
                     try
                     {
-                        await WriteAsync(message, token).ConfigureAwait(false);
+                        await WriteRequestAsync(request, token).ConfigureAwait(false);
 
                         bool readAgain;
                         do
                         {
                             readAgain = false;
-                            response = await ReadResponseAsync<T>(token).ConfigureAwait(false);
+                            response = await ReadResponseAsync<TResponse>(token).ConfigureAwait(false);
 
                             if (response is SlaveExceptionResponse exceptionResponse)
                             {
                                 // if SlaveExceptionCode == ACKNOWLEDGE we retry reading the response without resubmitting request
-                                readAgain = exceptionResponse.SlaveExceptionCode == SlaveExceptionCodes.Acknowledge;
+                                readAgain = exceptionResponse.SlaveExceptionCode == SlaveExceptionCode.Acknowledge;
 
                                 if (readAgain)
                                 {
-                                    Logger.Log(LoggingLevel.Debug, $"Received ACKNOWLEDGE slave exception response, waiting {waitToRetryMilliseconds} milliseconds and retrying to read response.");
+                                    LogAcknowledgeResponse(request);
                                     await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
                                 }
                                 else
@@ -103,7 +90,7 @@ namespace NModbusAsync.IO
                                     throw new SlaveException(exceptionResponse);
                                 }
                             }
-                            else if (ShouldRetryResponse(message, response))
+                            else if (RetryReadResponse(request, response))
                             {
                                 readAgain = true;
                             }
@@ -115,116 +102,90 @@ namespace NModbusAsync.IO
                         semaphoreSlim.Release();
                     }
 
-                    ValidateResponse(message, response);
+                    Validate(request, response);
                     success = true;
                 }
                 catch (SlaveException se)
                 {
-                    if (se.SlaveExceptionCode != SlaveExceptionCodes.SlaveDeviceBusy
-                        || (SlaveBusyUsesRetryCount && attempt++ > Retries))
+                    if (se.SlaveExceptionCode != SlaveExceptionCode.SlaveDeviceBusy || (SlaveBusyUsesRetryCount && attempt++ > Retries))
                     {
                         throw;
                     }
 
-                    Logger.Log(LoggingLevel.Warning, $"Received SLAVE_DEVICE_BUSY exception response, waiting {waitToRetryMilliseconds} milliseconds and resubmitting request.");
+                    LogSlaveDeviceBusyResponse(request);
                     await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
                 }
-                catch (Exception e) when (e is SocketException || e.InnerException is SocketException)
+                catch (Exception ex)
                 {
-                    throw;
-                }
-                catch (Exception e) when (e is FormatException || e is NotImplementedException || e is TimeoutException || e is IOException)
-                {
-                    Logger.Log(LoggingLevel.Error, $"{e.GetType().Name}, {(Retries - attempt + 1)} retries remaining - {e}");
-
-                    if (attempt++ > Retries)
+                    if (ex is SocketException || ex.InnerException is SocketException)
+                    {
+                        LogSocketException(request, ex);
+                        throw;
+                    }
+                    else if (ex is FormatException || ex is IOException || ex is TimeoutException)
+                    {
+                        LogException(request, ex, attempt);
+                        if (attempt++ > Retries)
+                        {
+                            throw;
+                        }
+                    }
+                    else
                     {
                         throw;
                     }
-                }
-                catch (Exception)
-                {
-                    throw;
                 }
             }
             while (!success);
 
-            return (T)response;
+            return (TResponse)response;
         }
 
-        public abstract Task<byte[]> ReadRequestAsync(CancellationToken token);
-
-        public abstract byte[] BuildMessageFrame(IModbusMessage message);
-
-        public abstract Task WriteAsync(IModbusMessage message, CancellationToken token);
-
-        protected virtual IModbusMessage CreateResponse<T>(byte[] frame) where T : IModbusMessage, new()
+        public void Dispose()
         {
-            byte functionCode = frame[1];
-            IModbusMessage response;
-
-            // check for slave exception response else create message from frame
-            if (functionCode > Constants.ExceptionOffset)
-            {
-                response = ModbusMessageFactory.CreateModbusMessage<SlaveExceptionResponse>(frame);
-            }
-            else
-            {
-                response = ModbusMessageFactory.CreateModbusMessage<T>(frame);
-            }
-
-            return response;
+            PipeResource.Dispose();
+            semaphoreSlim.Dispose();
         }
 
-        protected virtual bool OnShouldRetryResponse(IModbusMessage request, IModbusMessage response)
+        protected abstract Task WriteRequestAsync(IModbusRequest request, CancellationToken token = default);
+
+        protected abstract Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default) where TResponse : IModbusResponse, new();
+
+        protected abstract bool RetryReadResponse(IModbusRequest request, IModbusResponse response);
+
+        protected abstract void Validate(IModbusRequest request, IModbusResponse response);
+
+        private void LogAcknowledgeResponse(IModbusRequest request)
         {
-            return false;
+            var message = $@"Received slave exception code 'Acknowledge' while sending request.
+Waiting {WaitToRetryMilliseconds} milliseconds and retrying to read response.
+Request: {request}.";
+            Logger.Log(LogLevel.Debug, message);
         }
 
-        protected abstract Task<IModbusMessage> ReadResponseAsync<T>() where T : IModbusMessage, new();
-
-        protected abstract Task<IModbusMessage> ReadResponseAsync<T>(CancellationToken token) where T : IModbusMessage, new();
-
-        protected abstract void OnValidateResponse(IModbusMessage request, IModbusMessage response);
-
-        private void ValidateResponse(IModbusMessage request, IModbusMessage response)
+        private void LogSlaveDeviceBusyResponse(IModbusRequest request)
         {
-            // always check the function code and slave address, regardless of transport protocol
-            if (request.FunctionCode != response.FunctionCode)
-            {
-                string msg = $"Received response with unexpected Function Code. Expected {request.FunctionCode}, received {response.FunctionCode}.";
-                throw new IOException(msg);
-            }
-
-            if (request.SlaveAddress != response.SlaveAddress)
-            {
-                string msg = $"Response slave address does not match request. Expected {response.SlaveAddress}, received {request.SlaveAddress}.";
-                throw new IOException(msg);
-            }
-
-            // message specific validation
-            if (request is IModbusRequest req)
-            {
-                req.ValidateResponse(response);
-            }
-
-            OnValidateResponse(request, response);
+            var message = $@"Received slave exception code 'SlaveDeviceBusy' while sending request.
+Waiting {WaitToRetryMilliseconds} milliseconds and resubmitting request.
+Request: {request}.";
+            Logger.Log(LogLevel.Warning, message);
         }
 
-        private bool ShouldRetryResponse(IModbusMessage request, IModbusMessage response)
+        private void LogSocketException(IModbusRequest request, Exception ex)
         {
-            // These checks are enforced in ValidateRequest, we don't want to retry for these
-            if (request.FunctionCode != response.FunctionCode)
-            {
-                return false;
-            }
+            var message = $@"Socket error occured while sending request.
+Request: {request}
+Exception: {ex.GetType().Name}";
+            Logger.Log(LogLevel.Error, message);
+        }
 
-            if (request.SlaveAddress != response.SlaveAddress)
-            {
-                return false;
-            }
-
-            return OnShouldRetryResponse(request, response);
+        private void LogException(IModbusRequest request, Exception ex, int attempt)
+        {
+            var message = $@"Error occured while sending request.
+{Retries - attempt + 1} retries remaining.
+Request: {request}
+Exception: {ex.GetType().Name}";
+            Logger.Log(LogLevel.Error, message);
         }
     }
 }

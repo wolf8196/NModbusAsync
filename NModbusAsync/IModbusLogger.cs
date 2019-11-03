@@ -2,6 +2,6 @@
 {
     public interface IModbusLogger
     {
-        void Log(LoggingLevel level, string message);
+        void Log(LogLevel level, string message);
     }
 }

@@ -1,30 +1,29 @@
 ﻿using System;
-using NModbusAsync.Message;
+using NModbusAsync.Messages;
 
 namespace NModbusAsync
 {
     public class SlaveException : Exception
     {
-        private readonly SlaveExceptionResponse slaveExceptionResponse;
-
         internal SlaveException(SlaveExceptionResponse slaveExceptionResponse)
         {
-            this.slaveExceptionResponse = slaveExceptionResponse;
-        }
-
-        public override string Message
-        {
-            get
+            if (slaveExceptionResponse is null)
             {
-                var responseString = slaveExceptionResponse != null ? string.Concat(Environment.NewLine, slaveExceptionResponse) : string.Empty;
-                return string.Concat(base.Message, responseString);
+                throw new ArgumentNullException(nameof(slaveExceptionResponse));
             }
+
+            FunctionCode = slaveExceptionResponse.FunctionCode;
+            SlaveExceptionCode = slaveExceptionResponse.SlaveExceptionCode;
+            SlaveAddress = slaveExceptionResponse.SlaveAddress;
+            Message = string.Concat(base.Message, Environment.NewLine, slaveExceptionResponse);
         }
 
-        public byte FunctionCode => slaveExceptionResponse?.FunctionCode ?? default;
+        public override string Message { get; }
 
-        public byte SlaveExceptionCode => slaveExceptionResponse?.SlaveExceptionCode ?? default;
+        public byte FunctionCode { get; }
 
-        public byte SlaveAddress => slaveExceptionResponse?.SlaveAddress ?? default;
+        public SlaveExceptionCode SlaveExceptionCode { get; }
+
+        public byte SlaveAddress { get; }
     }
 }

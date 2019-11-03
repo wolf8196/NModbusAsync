@@ -1,172 +1,94 @@
-﻿using System;
+﻿using System.Buffers;
 using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using NModbusAsync.Messages;
+using NModbusAsync.Utility;
 
 namespace NModbusAsync.IO
 {
     internal sealed class ModbusIpTransport : ModbusTransport
     {
-        private static readonly object TransactionIdLock = new object();
-        private static ushort transactionId;
+        private const int MbapHeaderSizeOnRequest = 7;
+        private const int MbapHeaderSizeOnResponse = 6;
 
-        internal ModbusIpTransport(IStreamResource streamResource, IModbusLogger logger)
-            : base(streamResource, logger)
+        private readonly ITransactionIdProvider transactionIdProvider;
+
+        internal ModbusIpTransport(IPipeResource pipeResource, IModbusLogger logger, ITransactionIdProvider transactionIdProvider)
+            : base(pipeResource, logger)
         {
-            if (streamResource == null)
+            this.transactionIdProvider = transactionIdProvider ?? throw new System.ArgumentNullException(nameof(transactionIdProvider));
+        }
+
+        protected override async Task WriteRequestAsync(IModbusRequest request, CancellationToken token = default)
+        {
+            using (var memoryOwner = MemoryPool<byte>.Shared.Rent(MbapHeaderSizeOnRequest + request.ByteSize))
             {
-                throw new ArgumentNullException(nameof(streamResource));
+                var memory = memoryOwner.Memory;
+                request.TransactionId = transactionIdProvider.NewId();
+
+                NetCoreBitConverter.TryWriteBytes(memory.Slice(0, 2).Span, IPAddress.HostToNetworkOrder((short)request.TransactionId));
+                memory.Span[2] = 0;
+                memory.Span[3] = 0;
+                NetCoreBitConverter.TryWriteBytes(memory.Slice(4, 2).Span, IPAddress.HostToNetworkOrder((short)(request.ByteSize + 1)));
+                memory.Span[6] = request.SlaveAddress;
+
+                request.WriteTo(memory.Slice(MbapHeaderSizeOnRequest, request.ByteSize));
+
+                await PipeResource.WriteAsync(memory.Slice(0, MbapHeaderSizeOnRequest + request.ByteSize), token).ConfigureAwait(false);
             }
         }
 
-        public override byte[] BuildMessageFrame(IModbusMessage message)
+        protected override async Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default)
         {
-            var header = GetMbapHeader(message);
-            var pdu = message.ProtocolDataUnit;
-            var messageBody = new byte[header.Length + pdu.Length];
-            Buffer.BlockCopy(header, 0, messageBody, 0, header.Length);
-            Buffer.BlockCopy(pdu, 0, messageBody, header.Length, pdu.Length);
-            return messageBody;
-        }
+            var buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
 
-        public override Task WriteAsync(IModbusMessage message, CancellationToken token)
-        {
-            message.TransactionId = GetNewTransactionId();
-            byte[] frame = BuildMessageFrame(message);
-
-            Logger.Log(LoggingLevel.Trace, $"TX: {string.Join(", ", frame)}");
-
-            return StreamResource.WriteAsync(frame, 0, frame.Length, token);
-        }
-
-        public override Task<byte[]> ReadRequestAsync(CancellationToken token)
-        {
-            return ReadRequestResponseAsync(StreamResource, Logger, token);
-        }
-
-        protected override Task<IModbusMessage> ReadResponseAsync<T>()
-        {
-            return ReadResponseAsync<T>(default);
-        }
-
-        protected override async Task<IModbusMessage> ReadResponseAsync<T>(CancellationToken token)
-        {
-            return CreateMessageAndInitializeTransactionId<T>(
-                await ReadRequestResponseAsync(StreamResource, Logger, token).ConfigureAwait(false));
-        }
-
-        protected override bool OnShouldRetryResponse(IModbusMessage request, IModbusMessage response)
-        {
-            if (request.TransactionId > response.TransactionId && request.TransactionId - response.TransactionId < RetryOnOldResponseThreshold)
+            while (buffer.Length < MbapHeaderSizeOnResponse)
             {
-                // This response was from a previous request
-                return true;
+                PipeResource.AdvanceTo(buffer.Start);
+                buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
             }
 
-            return base.OnShouldRetryResponse(request, response);
-        }
+            var frameLength = (ushort)IPAddress.HostToNetworkOrder(NetCoreBitConverter.ToInt16(buffer.Slice(4, 2).ToSpan()));
 
-        protected override void OnValidateResponse(IModbusMessage request, IModbusMessage response)
-        {
-            if (request.TransactionId != response.TransactionId)
+            while (buffer.Length < MbapHeaderSizeOnResponse + frameLength)
             {
-                throw new IOException($"Response was not of expected transaction ID. Expected {request.TransactionId}, received {response.TransactionId}.");
-            }
-        }
-
-        private static async Task<byte[]> ReadRequestResponseAsync(IStreamResource streamResource, IModbusLogger logger, CancellationToken token)
-        {
-            if (streamResource == null)
-            {
-                throw new ArgumentNullException(nameof(streamResource));
+                PipeResource.AdvanceTo(buffer.Start);
+                buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
             }
 
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
+            var processedSequence = buffer.Slice(0, MbapHeaderSizeOnResponse + frameLength);
 
-            // read header
-            var mbapHeader = new byte[6];
-            int numBytesRead = 0;
+            var response = ModbusResponseFactory.CreateResponse<TResponse>(
+                processedSequence.Slice(MbapHeaderSizeOnResponse, processedSequence.Length - MbapHeaderSizeOnResponse).ToSpan());
 
-            while (numBytesRead != 6)
-            {
-                int read = await streamResource.ReadAsync(mbapHeader, numBytesRead, 6 - numBytesRead, token).ConfigureAwait(false);
+            response.TransactionId = (ushort)IPAddress.NetworkToHostOrder(NetCoreBitConverter.ToInt16(buffer.Slice(0, 2).ToSpan()));
 
-                if (read == 0)
-                {
-                    throw new IOException("Read resulted in 0 bytes returned.");
-                }
-
-                numBytesRead += read;
-            }
-
-            logger.Log(LoggingLevel.Debug, $"MBAP header: {string.Join(", ", mbapHeader)}");
-            var frameLength = (ushort)IPAddress.HostToNetworkOrder(BitConverter.ToInt16(mbapHeader, 4));
-            logger.Log(LoggingLevel.Debug, $"{frameLength} bytes in PDU.");
-
-            // read message
-            var messageFrame = new byte[frameLength];
-            numBytesRead = 0;
-
-            while (numBytesRead != frameLength)
-            {
-                int read = await streamResource.ReadAsync(messageFrame, numBytesRead, frameLength - numBytesRead, token).ConfigureAwait(false);
-
-                if (read == 0)
-                {
-                    throw new IOException("Read resulted in 0 bytes returned.");
-                }
-
-                numBytesRead += read;
-            }
-
-            logger.Log(LoggingLevel.Debug, $"PDU: {frameLength}");
-
-            var frame = new byte[mbapHeader.Length + messageFrame.Length];
-            Buffer.BlockCopy(mbapHeader, 0, frame, 0, mbapHeader.Length);
-            Buffer.BlockCopy(messageFrame, 0, frame, mbapHeader.Length, messageFrame.Length);
-
-            logger.Log(LoggingLevel.Debug, $"RX: {string.Join(", ", frame)}");
-
-            return frame;
-        }
-
-        private static byte[] GetMbapHeader(IModbusMessage message)
-        {
-            byte[] transactionId = BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)message.TransactionId));
-            byte[] length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)(message.ProtocolDataUnit.Length + 1)));
-
-            var mbapHeader = new byte[7];
-            Buffer.BlockCopy(transactionId, 0, mbapHeader, 0, 2);
-
-            // leave blanks in mbapHeader for protocol identifier
-            Buffer.BlockCopy(length, 0, mbapHeader, 4, 2);
-            mbapHeader[6] = message.SlaveAddress;
-
-            return mbapHeader;
-        }
-
-        private ushort GetNewTransactionId()
-        {
-            lock (TransactionIdLock)
-            {
-                transactionId = transactionId == ushort.MaxValue ? (ushort)1 : ++transactionId;
-                return transactionId;
-            }
-        }
-
-        private IModbusMessage CreateMessageAndInitializeTransactionId<T>(byte[] fullFrame) where T : IModbusMessage, new()
-        {
-            byte[] mbapHeader = new Span<byte>(fullFrame, 0, 6).ToArray();
-            byte[] messageFrame = new Span<byte>(fullFrame, 6, fullFrame.Length - 6).ToArray();
-
-            IModbusMessage response = CreateResponse<T>(messageFrame);
-            response.TransactionId = (ushort)IPAddress.NetworkToHostOrder(BitConverter.ToInt16(mbapHeader, 0));
+            PipeResource.AdvanceTo(processedSequence.End);
 
             return response;
+        }
+
+        protected override bool RetryReadResponse(IModbusRequest request, IModbusResponse response)
+        {
+            // Do not retry for these on invalid function code or slave address
+            return request.FunctionCode == response.FunctionCode
+                && request.SlaveAddress == response.SlaveAddress
+                && request.TransactionId > response.TransactionId
+                && request.TransactionId - response.TransactionId < RetryOnOldResponseThreshold;
+        }
+
+        protected override void Validate(IModbusRequest request, IModbusResponse response)
+        {
+            request.Validate(response);
+
+            if (request.TransactionId != response.TransactionId)
+            {
+                throw new IOException($@"Received unexpected transaction Id.
+Expected: {request.TransactionId}.
+Received: {response.TransactionId}.");
+            }
         }
     }
 }

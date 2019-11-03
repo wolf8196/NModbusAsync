@@ -1,6 +1,6 @@
 ﻿namespace NModbusAsync.Logging
 {
-    internal class NullModbusLogger : IModbusLogger
+    internal sealed class NullModbusLogger : IModbusLogger
     {
         internal static readonly NullModbusLogger Instance = new NullModbusLogger();
 
@@ -8,7 +8,7 @@
         {
         }
 
-        public void Log(LoggingLevel level, string message)
+        public void Log(LogLevel level, string message)
         {
         }
     }

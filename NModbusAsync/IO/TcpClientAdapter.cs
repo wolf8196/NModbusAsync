@@ -1,54 +1,26 @@
 ﻿using System;
+using System.IO;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
-using NModbusAsync.Utility;
 
 namespace NModbusAsync.IO
 {
-    internal class TcpClientAdapter<TResource> : IStreamResource<TResource> where TResource : TcpClient
+    internal sealed class TcpClientAdapter<TResource> : IStreamResource<TResource> where TResource : TcpClient
     {
-        private TcpClient tcpClient;
-
-        internal TcpClientAdapter(TcpClient tcpClient)
+        internal TcpClientAdapter(TResource tcpClient)
         {
-            this.tcpClient = tcpClient ?? throw new ArgumentNullException(nameof(tcpClient));
+            Resource = tcpClient ?? throw new ArgumentNullException(nameof(tcpClient));
         }
 
-        public int ReadTimeout
-        {
-            get => tcpClient.GetStream().ReadTimeout;
-            set => tcpClient.GetStream().ReadTimeout = value;
-        }
+        public TResource Resource { get; }
 
-        public int WriteTimeout
+        public Stream GetStream()
         {
-            get => tcpClient.GetStream().WriteTimeout;
-            set => tcpClient.GetStream().WriteTimeout = value;
-        }
-
-        public TResource UnderlyingResource => tcpClient as TResource;
-
-        public Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken token)
-        {
-            // Move back to sync I/O as there is no timeout in NetworkStream
-            return Task.Run(() => tcpClient.GetStream().Write(buffer, offset, count), token);
-        }
-
-        public Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token)
-        {
-            // Move back to sync I/O as there is no timeout in NetworkStream
-            return Task.Run(() => tcpClient.GetStream().Read(buffer, offset, count), token);
-        }
-
-        public Task FlushAsync(CancellationToken token)
-        {
-            return tcpClient.GetStream().FlushAsync(token);
+            return Resource.GetStream();
         }
 
         public void Dispose()
         {
-            DisposableUtility.Dispose(ref tcpClient);
+            Resource.Dispose();
         }
     }
 }

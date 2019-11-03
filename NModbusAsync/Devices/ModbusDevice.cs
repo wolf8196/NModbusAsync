@@ -1,22 +1,19 @@
 ﻿using System;
-using NModbusAsync.Utility;
 
 namespace NModbusAsync.Devices
 {
     internal abstract class ModbusDevice : IDisposable
     {
-        private IModbusTransport transport;
-
-        internal ModbusDevice(IModbusTransport transport)
+        protected ModbusDevice(IModbusTransport transport)
         {
-            this.transport = transport;
+            Transport = transport ?? throw new ArgumentNullException(nameof(transport));
         }
 
-        public IModbusTransport Transport => transport;
+        public IModbusTransport Transport { get; }
 
         public void Dispose()
         {
-            DisposableUtility.Dispose(ref transport);
+            Transport.Dispose();
         }
     }
 }

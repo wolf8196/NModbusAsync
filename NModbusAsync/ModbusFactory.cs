@@ -14,13 +14,14 @@ namespace NModbusAsync
             this.logger = logger ?? NullModbusLogger.Instance;
         }
 
-        public IModbusMaster CreateMaster<T>(T tcpClient) where T : TcpClient
+        public IModbusMaster CreateMaster<TResource>(TResource tcpClient) where TResource : TcpClient
         {
-            var adapter = new TcpClientAdapter<T>(tcpClient);
-
-            var transport = new ModbusIpTransport(adapter, logger);
-
-            return new ModbusIpMaster(transport);
+            return new ModbusMaster(
+                new ModbusIpTransport(
+                    new PipeAdapter<TResource>(
+                        new TcpClientAdapter<TResource>(tcpClient)),
+                    logger,
+                    new TransactionIdProvider()));
         }
     }
 }

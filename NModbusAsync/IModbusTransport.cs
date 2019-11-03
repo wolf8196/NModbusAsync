@@ -18,14 +18,8 @@ namespace NModbusAsync
 
         int WriteTimeout { get; set; }
 
-        IStreamResource StreamResource { get; }
+        IPipeResource PipeResource { get; }
 
-        Task<T> UnicastMessageAsync<T>(IModbusMessage message, CancellationToken token = default) where T : IModbusMessage, new();
-
-        Task<byte[]> ReadRequestAsync(CancellationToken token = default);
-
-        byte[] BuildMessageFrame(IModbusMessage message);
-
-        Task WriteAsync(IModbusMessage message, CancellationToken token = default);
+        Task<TResponse> SendAsync<TResponse>(IModbusRequest request, CancellationToken token = default) where TResponse : IModbusResponse, new();
     }
 }
