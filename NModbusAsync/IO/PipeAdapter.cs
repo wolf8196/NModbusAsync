@@ -95,8 +95,8 @@ namespace NModbusAsync.IO
         public void Dispose()
         {
             streamResource.Dispose();
-            pipeWriter.Complete();
-            pipeReader.Complete();
+            pipeWriter.Complete(new Exception());
+            pipeReader.Complete(new Exception());
         }
     }
 }
