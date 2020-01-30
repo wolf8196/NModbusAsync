@@ -34,7 +34,6 @@ namespace NModbusAsync.Test.Unit
                     new ReadCoilsRequest(1, 1, 9),
                     ModbusResponseFactory.CreateResponse<ReadCoilsResponse>(new ReadOnlySpan<byte>(new byte[] { 1, 1, 1, 1 }))
                 },
-
                 {
                     new ReadInputsRequest(1, 1, 1),
                     ModbusResponseFactory.CreateResponse<ReadInputsResponse>(new ReadOnlySpan<byte>(new byte[] { 2, 1, 1, 1 }))
@@ -47,7 +46,6 @@ namespace NModbusAsync.Test.Unit
                     new ReadInputsRequest(1, 1, 9),
                     ModbusResponseFactory.CreateResponse<ReadInputsResponse>(new ReadOnlySpan<byte>(new byte[] { 1, 1, 1, 1 }))
                 },
-
                 {
                     new ReadHoldingRegistersRequest(1, 1, 1),
                     ModbusResponseFactory.CreateResponse<ReadHoldingRegistersResponse>(new ReadOnlySpan<byte>(new byte[] { 2, 1, 1, 1 }))
@@ -60,8 +58,6 @@ namespace NModbusAsync.Test.Unit
                     new ReadHoldingRegistersRequest(1, 1, 2),
                     ModbusResponseFactory.CreateResponse<ReadHoldingRegistersResponse>(new ReadOnlySpan<byte>(new byte[] { 1, 3, 2, 1, 1 }))
                 },
-
-
                 {
                     new ReadInputRegistersRequest(1, 1, 1),
                     ModbusResponseFactory.CreateResponse<ReadInputRegistersResponse>(new ReadOnlySpan<byte>(new byte[] { 2, 1, 1, 1 }))
@@ -74,8 +70,6 @@ namespace NModbusAsync.Test.Unit
                     new ReadInputRegistersRequest(1, 1, 2),
                     ModbusResponseFactory.CreateResponse<ReadInputRegistersResponse>(new ReadOnlySpan<byte>(new byte[] { 1, 4, 2, 1, 1 }))
                 },
-
-
                 {
                     new WriteSingleCoilRequest(1, 1, true),
                     ModbusResponseFactory.CreateResponse<WriteSingleCoilResponse>(new ReadOnlySpan<byte>(new byte[] { 2, 1, 0, 1, byte.MaxValue, 0 }))
@@ -96,7 +90,6 @@ namespace NModbusAsync.Test.Unit
                     new WriteSingleCoilRequest(1, 1, true),
                     ModbusResponseFactory.CreateResponse<WriteSingleCoilResponse>(new ReadOnlySpan<byte>(new byte[] { 1, 5, 0, 1, 0, 0 }))
                 },
-                
                 {
                     new WriteSingleRegisterRequest(1, 1, ushort.MaxValue),
                     ModbusResponseFactory.CreateResponse<WriteSingleRegisterResponse>(new ReadOnlySpan<byte>(new byte[] { 2, 1, 0, 1, 0, 0 }))
@@ -113,7 +106,6 @@ namespace NModbusAsync.Test.Unit
                     new WriteSingleRegisterRequest(1, 1, ushort.MaxValue),
                     ModbusResponseFactory.CreateResponse<WriteSingleRegisterResponse>(new ReadOnlySpan<byte>(new byte[] { 1, 6, 0, 1, 0, 0 }))
                 },
-                
                 {
                     new WriteMultipleCoilsRequest(1, 1, new bool[] { true }),
                     ModbusResponseFactory.CreateResponse<WriteMultipleCoilsResponse>(new ReadOnlySpan<byte>(new byte[] { 2, 1, 0, 1, 0, 1 }))
@@ -130,7 +122,6 @@ namespace NModbusAsync.Test.Unit
                     new WriteMultipleCoilsRequest(1, 1, new bool[] { true }),
                     ModbusResponseFactory.CreateResponse<WriteMultipleCoilsResponse>(new ReadOnlySpan<byte>(new byte[] { 1, 15, 0, 1, 0, 2 }))
                 },
-
                 {
                     new WriteMultipleRegistersRequest(1, 1, new ushort[] { ushort.MaxValue }),
                     ModbusResponseFactory.CreateResponse<WriteMultipleRegistersResponse>(new ReadOnlySpan<byte>(new byte[] { 2, 1, 0, 1, 0, 1 }))

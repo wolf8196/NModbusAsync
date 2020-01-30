@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using NModbusAsync.Messages;
-using Xunit;
 using NModbusAsync.Utility;
+using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {

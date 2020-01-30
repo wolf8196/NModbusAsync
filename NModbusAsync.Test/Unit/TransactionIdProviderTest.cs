@@ -19,10 +19,13 @@ namespace NModbusAsync.Test.Unit
             var collection = new ConcurrentBag<ushort>();
 
             // Act
-            Parallel.For(0, ushort.MaxValue * 3, (i) =>
-            {
-                collection.Add(target.NewId());
-            });
+            Parallel.For(
+                0,
+                ushort.MaxValue * 3,
+                (i) =>
+                {
+                    collection.Add(target.NewId());
+                });
 
             // Assert
             var range = Enumerable.Range(0, ushort.MaxValue).Select(x => (ushort)x);

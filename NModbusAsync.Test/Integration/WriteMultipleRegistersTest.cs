@@ -33,7 +33,7 @@ namespace NModbusAsync.Test.Integration
             {
                 { 0, new ushort[] { 10 } },
                 { 4, new ushort[] { 20, 30, 40 } },
-                { 10, Enumerable.Range(2, 123).Select(x => (ushort)x).ToArray()},
+                { 10, Enumerable.Range(2, 123).Select(x => (ushort)x).ToArray() },
             };
         }
     }

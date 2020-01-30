@@ -88,12 +88,16 @@ namespace NModbusAsync.Test.Unit
         public async Task TimesOutOnWriteAsync()
         {
             // Arrange
-            var streamMock = new StreamMock();
-            streamMock.WriteTimeout = 1000;
+            var streamMock = new StreamMock
+            {
+                WriteTimeout = 1000
+            };
             var streamResourceMock = new Mock<IStreamResource<TcpClient>>();
             streamResourceMock.Setup(x => x.GetStream()).Returns(streamMock);
-            var pipeAdapter = new PipeAdapter<TcpClient>(streamResourceMock.Object);
-            pipeAdapter.WriteTimeout = 500;
+            var pipeAdapter = new PipeAdapter<TcpClient>(streamResourceMock.Object)
+            {
+                WriteTimeout = 500
+            };
 
             // Act/Assert
             await Assert.ThrowsAsync<TimeoutException>(() => pipeAdapter.WriteAsync(new byte[] { 1, 2, 3 }, CancellationToken.None));
@@ -102,15 +106,6 @@ namespace NModbusAsync.Test.Unit
         private class StreamMock : Stream
         {
             public override int WriteTimeout { get; set; }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                Thread.Sleep(WriteTimeout);
-            }
-
-            public override void Flush()
-            {
-            }
 
             public override bool CanWrite => true;
 
@@ -131,6 +126,15 @@ namespace NModbusAsync.Test.Unit
             public override void SetLength(long value) => throw new System.NotImplementedException();
 
             #endregion Not implemented
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                Thread.Sleep(WriteTimeout);
+            }
+
+            public override void Flush()
+            {
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ The main difference and advantage of NModbusAsync is that all operations now uti
     <Copyright>Copyright (c) 2019 Roman Vovk</Copyright>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>nmodbusasync_key.pfx</AssemblyOriginatorKeyFile>
-    <Version>2.0.1-preview1</Version>
+    <Version>2.0.1</Version>
     <Authors>Roman Vovk</Authors>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
@@ -40,7 +40,7 @@ The main difference and advantage of NModbusAsync is that all operations now uti
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="4.7.0-preview2.19523.17" />
+    <PackageReference Include="System.IO.Pipelines" Version="4.7.0" />
   </ItemGroup>
 
 </Project>

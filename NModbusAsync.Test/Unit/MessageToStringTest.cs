@@ -202,10 +202,12 @@ namespace NModbusAsync.Test.Unit
             response.Initialize(new byte[] { 11, 129, 20 });
 
             // Act/Assert
-            Assert.Equal($@"Function Code: 129.
+            Assert.Equal(
+                $@"Function Code: 129.
 Exception Code: 20.
 Message: Unknown slave exception code.
-Slave: 11.", response.ToString());
+Slave: 11.",
+response.ToString());
         }
 
         [Fact]
@@ -217,10 +219,12 @@ Slave: 11.", response.ToString());
             response.Initialize(new byte[] { 11, 129, 1 });
 
             // Act/Assert
-            Assert.Equal($@"Function Code: 129.
+            Assert.Equal(
+                $@"Function Code: 129.
 Exception Code: 1.
 Message: The function code received in the query is not an allowable action for the server (or slave). This may be because the function code is only applicable to newer devices, and was not implemented in the unit selected.It could also indicate that the server(or slave) is in the wrong state to process a request of this type, for example because it is unconfigured and is being asked to return register values.
-Slave: 11.", response.ToString());
+Slave: 11.",
+response.ToString());
         }
     }
 }
