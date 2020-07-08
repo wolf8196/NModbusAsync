@@ -9,14 +9,17 @@ namespace NModbusAsync.IO
 {
     internal abstract class ModbusTransport : IModbusTransport
     {
+        private readonly ITransactionIdProvider transactionIdProvider;
         private readonly SemaphoreSlim semaphoreSlim;
 
         private int waitToRetryMilliseconds;
 
-        protected ModbusTransport(IPipeResource pipeResource, IModbusLogger logger)
+        protected ModbusTransport(IPipeResource pipeResource, IModbusLogger logger, ITransactionIdProvider transactionIdProvider)
         {
             PipeResource = pipeResource ?? throw new ArgumentNullException(nameof(pipeResource));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            this.transactionIdProvider = transactionIdProvider ?? throw new ArgumentNullException(nameof(transactionIdProvider));
 
             semaphoreSlim = new SemaphoreSlim(1, 1);
         }
@@ -59,6 +62,8 @@ namespace NModbusAsync.IO
             IModbusResponse response = null;
             int attempt = 1;
             bool success = false;
+
+            request.TransactionId = transactionIdProvider.NewId();
 
             LogRequest(request);
 

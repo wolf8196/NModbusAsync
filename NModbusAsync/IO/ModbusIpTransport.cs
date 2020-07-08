@@ -13,12 +13,9 @@ namespace NModbusAsync.IO
         private const int MbapHeaderSizeOnRequest = 7;
         private const int MbapHeaderSizeOnResponse = 6;
 
-        private readonly ITransactionIdProvider transactionIdProvider;
-
         internal ModbusIpTransport(IPipeResource pipeResource, IModbusLogger logger, ITransactionIdProvider transactionIdProvider)
-            : base(pipeResource, logger)
+            : base(pipeResource, logger, transactionIdProvider)
         {
-            this.transactionIdProvider = transactionIdProvider ?? throw new System.ArgumentNullException(nameof(transactionIdProvider));
         }
 
         protected override async Task WriteRequestAsync(IModbusRequest request, CancellationToken token = default)
@@ -26,7 +23,6 @@ namespace NModbusAsync.IO
             using (var memoryOwner = MemoryPool<byte>.Shared.Rent(MbapHeaderSizeOnRequest + request.ByteSize))
             {
                 var memory = memoryOwner.Memory;
-                request.TransactionId = transactionIdProvider.NewId();
 
                 NetCoreBitConverter.TryWriteBytes(memory.Slice(0, 2).Span, IPAddress.HostToNetworkOrder((short)request.TransactionId));
                 memory.Span[2] = 0;

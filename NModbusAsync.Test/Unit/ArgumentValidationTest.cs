@@ -45,7 +45,7 @@ namespace NModbusAsync.Test.Unit
         public void ModbusTransportThrowsOnNullTransactionIdProvider()
         {
             // Act/Assert
-            Assert.Throws<ArgumentNullException>("transactionIdProvider", () => new ModbusIpTransport(new Mock<IPipeResource>().Object, new Mock<IModbusLogger>().Object, null));
+            Assert.Throws<ArgumentNullException>("transactionIdProvider", () => new ModbusIpTransport(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), null));
         }
 
         [Fact]
@@ -236,7 +236,7 @@ namespace NModbusAsync.Test.Unit
         public void ModbusTransportThrowsOnInvalidWaitToRetryMilliseconds(int milliseconds)
         {
             // Arrange
-            var transport = new ModbusIpTransport(new Mock<IPipeResource>().Object, new Mock<IModbusLogger>().Object, new Mock<ITransactionIdProvider>().Object);
+            var transport = new ModbusIpTransport(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), new Mock<ITransactionIdProvider>().Object);
 
             // Act/Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => transport.WaitToRetryMilliseconds = milliseconds);
