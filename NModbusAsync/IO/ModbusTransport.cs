@@ -60,6 +60,8 @@ namespace NModbusAsync.IO
             int attempt = 1;
             bool success = false;
 
+            LogRequest(request);
+
             do
             {
                 try
@@ -138,6 +140,8 @@ namespace NModbusAsync.IO
             }
             while (!success);
 
+            LogResponse(response);
+
             return (TResponse)response;
         }
 
@@ -154,6 +158,20 @@ namespace NModbusAsync.IO
         protected abstract bool RetryReadResponse(IModbusRequest request, IModbusResponse response);
 
         protected abstract void Validate(IModbusRequest request, IModbusResponse response);
+
+        private void LogRequest(IModbusRequest request)
+        {
+            Logger.Log(LogLevel.Trace, $@"Sending modbus request.
+TransactionId: {request.TransactionId}
+Request: {request}");
+        }
+
+        private void LogResponse(IModbusResponse response)
+        {
+            Logger.Log(LogLevel.Trace, $@"Sending modbus request.
+TransactionId: {response.TransactionId}
+Response: {response}");
+        }
 
         private void LogAcknowledgeResponse(IModbusRequest request)
         {
