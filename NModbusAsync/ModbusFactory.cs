@@ -9,12 +9,22 @@ namespace NModbusAsync
     {
         private readonly IModbusLogger logger;
 
-        public ModbusFactory(IModbusLogger logger = null)
+        public ModbusFactory()
         {
-            this.logger = logger ?? NullModbusLogger.Instance;
+            logger = NullModbusLogger.Instance;
+        }
+
+        public ModbusFactory(IModbusLogger logger)
+        {
+            this.logger = logger;
         }
 
         public IModbusMaster CreateMaster<TResource>(TResource tcpClient) where TResource : TcpClient
+        {
+            return CreateMaster(tcpClient, logger);
+        }
+
+        public IModbusMaster CreateMaster<TResource>(TResource tcpClient, IModbusLogger logger) where TResource : TcpClient
         {
             return new ModbusMaster(
                 new ModbusIpTransport(
