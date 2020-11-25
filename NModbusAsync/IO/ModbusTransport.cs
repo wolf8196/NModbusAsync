@@ -11,6 +11,7 @@ namespace NModbusAsync.IO
     {
         private readonly ITransactionIdProvider transactionIdProvider;
         private readonly SemaphoreSlim semaphoreSlim;
+        private readonly CancellationTokenSource disposingTokenSource;
 
         private int waitToRetryMilliseconds;
 
@@ -22,6 +23,7 @@ namespace NModbusAsync.IO
             this.transactionIdProvider = transactionIdProvider ?? throw new ArgumentNullException(nameof(transactionIdProvider));
 
             semaphoreSlim = new SemaphoreSlim(1, 1);
+            disposingTokenSource = new CancellationTokenSource();
         }
 
         public int ReadTimeout { get => PipeResource.ReadTimeout; set => PipeResource.ReadTimeout = value; }
@@ -59,101 +61,133 @@ namespace NModbusAsync.IO
         public async Task<TResponse> SendAsync<TResponse>(IModbusRequest request, CancellationToken token = default)
             where TResponse : IModbusResponse, new()
         {
-            IModbusResponse response = null;
-            int attempt = 1;
-            bool success = false;
+            ThrowIfDisposed();
 
+            var attempt = 1;
+            var success = false;
             request.TransactionId = transactionIdProvider.NewId();
 
             LogRequest(request);
 
-            do
+            using (var currCallTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token, disposingTokenSource.Token))
             {
-                try
+                token = currCallTokenSource.Token;
+
+                IModbusResponse response = null;
+                do
                 {
-                    await semaphoreSlim.WaitAsync(token).ConfigureAwait(false);
                     try
                     {
-                        await WriteRequestAsync(request, token).ConfigureAwait(false);
-
-                        bool readAgain;
-                        do
+                        await semaphoreSlim.WaitAsync(token).ConfigureAwait(false);
+                        try
                         {
-                            readAgain = false;
-                            response = await ReadResponseAsync<TResponse>(token).ConfigureAwait(false);
+                            await WriteRequestAsync(request, token).ConfigureAwait(false);
 
-                            if (response is SlaveExceptionResponse exceptionResponse)
+                            bool readAgain;
+                            do
                             {
-                                // if SlaveExceptionCode == ACKNOWLEDGE we retry reading the response without resubmitting request
-                                readAgain = exceptionResponse.SlaveExceptionCode == SlaveExceptionCode.Acknowledge;
+                                readAgain = false;
+                                response = await ReadResponseAsync<TResponse>(token).ConfigureAwait(false);
 
-                                if (readAgain)
+                                if (response is SlaveExceptionResponse exceptionResponse)
                                 {
-                                    LogAcknowledgeResponse(request);
-                                    await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
+                                    // if SlaveExceptionCode == ACKNOWLEDGE we retry reading the response without resubmitting request
+                                    readAgain = exceptionResponse.SlaveExceptionCode == SlaveExceptionCode.Acknowledge;
+
+                                    if (readAgain)
+                                    {
+                                        LogAcknowledgeResponse(request);
+                                        await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
+                                    }
+                                    else
+                                    {
+                                        throw new SlaveException(exceptionResponse);
+                                    }
                                 }
-                                else
+                                else if (RetryReadResponse(request, response))
                                 {
-                                    throw new SlaveException(exceptionResponse);
+                                    readAgain = true;
                                 }
                             }
-                            else if (RetryReadResponse(request, response))
+                            while (readAgain);
+                        }
+                        finally
+                        {
+                            semaphoreSlim.Release();
+                        }
+
+                        Validate(request, response);
+                        success = true;
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        ThrowIfDisposed();
+                        throw; // else throw original ObjectDisposedException
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        ThrowIfDisposed();
+                        throw; // else throw original OperationCanceledException
+                    }
+                    catch (SlaveException se)
+                    {
+                        if (se.SlaveExceptionCode != SlaveExceptionCode.SlaveDeviceBusy || (SlaveBusyUsesRetryCount && attempt++ > Retries))
+                        {
+                            throw;
+                        }
+
+                        LogSlaveDeviceBusyResponse(request);
+                        await DelayRetryWithExceptionHandling(token);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is SocketException || ex.InnerException is SocketException)
+                        {
+                            LogSocketException(request, ex);
+                            throw;
+                        }
+                        else if (ex is FormatException || ex is IOException || ex is TimeoutException)
+                        {
+                            LogException(request, ex, attempt);
+                            if (attempt++ > Retries)
                             {
-                                readAgain = true;
+                                throw;
                             }
                         }
-                        while (readAgain);
-                    }
-                    finally
-                    {
-                        semaphoreSlim.Release();
-                    }
-
-                    Validate(request, response);
-                    success = true;
-                }
-                catch (SlaveException se)
-                {
-                    if (se.SlaveExceptionCode != SlaveExceptionCode.SlaveDeviceBusy || (SlaveBusyUsesRetryCount && attempt++ > Retries))
-                    {
-                        throw;
-                    }
-
-                    LogSlaveDeviceBusyResponse(request);
-                    await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    if (ex is SocketException || ex.InnerException is SocketException)
-                    {
-                        LogSocketException(request, ex);
-                        throw;
-                    }
-                    else if (ex is FormatException || ex is IOException || ex is TimeoutException)
-                    {
-                        LogException(request, ex, attempt);
-                        if (attempt++ > Retries)
+                        else
                         {
                             throw;
                         }
                     }
-                    else
-                    {
-                        throw;
-                    }
                 }
+                while (!success);
+
+                LogResponse(response);
+
+                return (TResponse)response;
             }
-            while (!success);
-
-            LogResponse(response);
-
-            return (TResponse)response;
         }
 
         public void Dispose()
         {
-            PipeResource.Dispose();
-            semaphoreSlim.Dispose();
+            if (disposingTokenSource.IsCancellationRequested) // dispose flag
+            {
+                return;
+            }
+
+            lock (disposingTokenSource)
+            {
+                if (disposingTokenSource.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                disposingTokenSource.Cancel();
+                disposingTokenSource.Dispose();
+
+                PipeResource.Dispose();
+                semaphoreSlim.Dispose();
+            }
         }
 
         protected abstract Task WriteRequestAsync(IModbusRequest request, CancellationToken token = default);
@@ -209,6 +243,27 @@ Exception: {ex.GetType().Name}";
 Request: {request}
 Exception: {ex.GetType().Name}";
             Logger.Log(LogLevel.Error, message);
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (disposingTokenSource.IsCancellationRequested)
+            {
+                throw new ObjectDisposedException(nameof(ModbusTransport));
+            }
+        }
+
+        private async Task DelayRetryWithExceptionHandling(CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                ThrowIfDisposed();
+                throw; // else throw OperationCanceledException
+            }
         }
     }
 }

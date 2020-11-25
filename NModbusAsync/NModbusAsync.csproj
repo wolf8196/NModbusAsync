@@ -41,7 +41,7 @@ The main difference and advantage of NModbusAsync is that all operations now uti
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="4.7.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="5.0.0" />
   </ItemGroup>
 
 </Project>

@@ -8,7 +8,6 @@ using Moq;
 using Moq.Protected;
 using NModbusAsync.IO;
 using NModbusAsync.Messages;
-using NModbusAsync.Messages.Abstractions;
 using NModbusAsync.Test.Helpers;
 using Xunit;
 
@@ -39,9 +38,9 @@ namespace NModbusAsync.Test.Unit
             Assert.Equal(response, actual);
 
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.WriteRequestAsync(request, CancellationToken.None), Times.Once());
+                .Verify(x => x.WriteRequestAsync(request, It.IsAny<CancellationToken>()), Times.Once());
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.ReadResponseAsync<ReadHoldingRegistersResponse>(CancellationToken.None), Times.Exactly(3));
+                .Verify(x => x.ReadResponseAsync<ReadHoldingRegistersResponse>(It.IsAny<CancellationToken>()), Times.Exactly(3));
             target.Protected().As<IModbusTransportMock>()
                 .Verify(x => x.RetryReadResponse(request, response), Times.Once());
             target.Protected().As<IModbusTransportMock>()
@@ -77,9 +76,9 @@ namespace NModbusAsync.Test.Unit
             Assert.Equal(exceptionCode, ex.SlaveExceptionCode);
 
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.WriteRequestAsync(request, CancellationToken.None), Times.Once());
+                .Verify(x => x.WriteRequestAsync(request, It.IsAny<CancellationToken>()), Times.Once());
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.ReadResponseAsync<ReadHoldingRegistersResponse>(CancellationToken.None), Times.Once());
+                .Verify(x => x.ReadResponseAsync<ReadHoldingRegistersResponse>(It.IsAny<CancellationToken>()), Times.Once());
         }
 
         [Fact]
@@ -106,9 +105,9 @@ namespace NModbusAsync.Test.Unit
             Assert.Equal(response, actual);
 
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.WriteRequestAsync(request, CancellationToken.None), Times.Exactly(5));
+                .Verify(x => x.WriteRequestAsync(request, It.IsAny<CancellationToken>()), Times.Exactly(5));
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.ReadResponseAsync<ReadHoldingRegistersResponse>(CancellationToken.None), Times.Exactly(5));
+                .Verify(x => x.ReadResponseAsync<ReadHoldingRegistersResponse>(It.IsAny<CancellationToken>()), Times.Exactly(5));
             target.Protected().As<IModbusTransportMock>()
                 .Verify(x => x.RetryReadResponse(request, response), Times.Once());
             target.Protected().As<IModbusTransportMock>()
@@ -139,9 +138,9 @@ namespace NModbusAsync.Test.Unit
             Assert.Equal(SlaveExceptionCode.SlaveDeviceBusy, ex.SlaveExceptionCode);
 
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.WriteRequestAsync(request, CancellationToken.None), Times.Exactly(3));
+                .Verify(x => x.WriteRequestAsync(request, It.IsAny<CancellationToken>()), Times.Exactly(3));
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.ReadResponseAsync<ReadHoldingRegistersResponse>(CancellationToken.None), Times.Exactly(3));
+                .Verify(x => x.ReadResponseAsync<ReadHoldingRegistersResponse>(It.IsAny<CancellationToken>()), Times.Exactly(3));
         }
 
         [Theory]
@@ -161,7 +160,7 @@ namespace NModbusAsync.Test.Unit
             Assert.Equal(exception, ex);
 
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.WriteRequestAsync(It.IsAny<IModbusRequest>(), CancellationToken.None), Times.Exactly(1));
+                .Verify(x => x.WriteRequestAsync(It.IsAny<IModbusRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(1));
         }
 
         [Theory]
@@ -184,7 +183,7 @@ namespace NModbusAsync.Test.Unit
             Assert.Equal(exception, ex);
 
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.WriteRequestAsync(It.IsAny<IModbusRequest>(), CancellationToken.None), Times.Exactly(3));
+                .Verify(x => x.WriteRequestAsync(It.IsAny<IModbusRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
         }
 
         [Fact]
@@ -206,7 +205,7 @@ namespace NModbusAsync.Test.Unit
             Assert.Equal(exception, ex);
 
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.WriteRequestAsync(It.IsAny<IModbusRequest>(), CancellationToken.None), Times.Exactly(1));
+                .Verify(x => x.WriteRequestAsync(It.IsAny<IModbusRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(1));
         }
 
         [Fact]
@@ -227,9 +226,9 @@ namespace NModbusAsync.Test.Unit
 
             // Assert
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.WriteRequestAsync(request, CancellationToken.None), Times.Exactly(1));
+                .Verify(x => x.WriteRequestAsync(request, It.IsAny<CancellationToken>()), Times.Exactly(1));
             target.Protected().As<IModbusTransportMock>()
-                .Verify(x => x.ReadResponseAsync<WriteMultipleCoilsResponse>(CancellationToken.None), Times.Exactly(2));
+                .Verify(x => x.ReadResponseAsync<WriteMultipleCoilsResponse>(It.IsAny<CancellationToken>()), Times.Exactly(2));
             target.Protected().As<IModbusTransportMock>()
                 .Verify(x => x.RetryReadResponse(request, It.IsAny<IModbusResponse>()), Times.Exactly(2));
             target.Protected().As<IModbusTransportMock>()

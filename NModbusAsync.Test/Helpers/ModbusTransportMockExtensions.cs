@@ -15,7 +15,7 @@ namespace NModbusAsync.Test.Helpers
         {
             mock.Protected()
                 .As<IModbusTransportMock>()
-                .Setup(x => x.WriteRequestAsync(requests[0], CancellationToken.None))
+                .Setup(x => x.WriteRequestAsync(requests[0], It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
         }
 
@@ -23,7 +23,7 @@ namespace NModbusAsync.Test.Helpers
         {
             mock.Protected()
                 .As<IModbusTransportMock>()
-                .Setup(x => x.WriteRequestAsync(It.IsAny<IModbusRequest>(), CancellationToken.None))
+                .Setup(x => x.WriteRequestAsync(It.IsAny<IModbusRequest>(), It.IsAny<CancellationToken>()))
                 .Throws(ex);
         }
 
@@ -33,14 +33,14 @@ namespace NModbusAsync.Test.Helpers
             {
                 mock.Protected()
                     .As<IModbusTransportMock>()
-                    .Setup(x => x.ReadResponseAsync<TResponse>(CancellationToken.None))
+                    .Setup(x => x.ReadResponseAsync<TResponse>(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(responses[0]);
                 return;
             }
 
             var sequenceMock = mock.Protected()
                 .As<IModbusTransportMock>()
-                .SetupSequence(x => x.ReadResponseAsync<TResponse>(CancellationToken.None));
+                .SetupSequence(x => x.ReadResponseAsync<TResponse>(It.IsAny<CancellationToken>()));
 
             foreach (var item in responses)
             {

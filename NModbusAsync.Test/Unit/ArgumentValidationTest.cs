@@ -111,7 +111,7 @@ namespace NModbusAsync.Test.Unit
         [InlineData(2001)]
         [InlineData(3000)]
         [Trait("Category", "Unit")]
-        public async Task ReadCoilsAsyncThrowsOnInvalidNumberOfPoints(ushort numberOfPoints)
+        public async Task ReadCoilsAsyncThrowsOnInvalidNumberOfPoints(ushort numOfPoints)
         {
             // Arrange
             var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
@@ -119,7 +119,7 @@ namespace NModbusAsync.Test.Unit
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 "numberOfPoints",
-                () => target.ReadCoilsAsync(1, 0, numberOfPoints));
+                () => target.ReadCoilsAsync(1, 0, numOfPoints));
         }
 
         [Theory]
@@ -127,7 +127,7 @@ namespace NModbusAsync.Test.Unit
         [InlineData(2001)]
         [InlineData(3000)]
         [Trait("Category", "Unit")]
-        public async Task ReadInputsAsyncThrowsOnInvalidNumberOfPoints(ushort numberOfPoints)
+        public async Task ReadInputsAsyncThrowsOnInvalidNumberOfPoints(ushort numOfPoints)
         {
             // Arrange
             var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
@@ -135,7 +135,7 @@ namespace NModbusAsync.Test.Unit
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 "numberOfPoints",
-                () => target.ReadInputsAsync(1, 0, numberOfPoints));
+                () => target.ReadInputsAsync(1, 0, numOfPoints));
         }
 
         [Theory]
@@ -143,7 +143,7 @@ namespace NModbusAsync.Test.Unit
         [InlineData(126)]
         [InlineData(1000)]
         [Trait("Category", "Unit")]
-        public async Task ReadHoldingRegistersAsyncThrowsOnInvalidNumberOfPoints(ushort numberOfPoints)
+        public async Task ReadHoldingRegistersAsyncThrowsOnInvalidNumberOfPoints(ushort numOfPoints)
         {
             // Arrange
             var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
@@ -151,7 +151,7 @@ namespace NModbusAsync.Test.Unit
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 "numberOfPoints",
-                () => target.ReadHoldingRegistersAsync(1, 0, numberOfPoints));
+                () => target.ReadHoldingRegistersAsync(1, 0, numOfPoints));
         }
 
         [Theory]
@@ -159,7 +159,7 @@ namespace NModbusAsync.Test.Unit
         [InlineData(126)]
         [InlineData(1000)]
         [Trait("Category", "Unit")]
-        public async Task ReadInputRegistersAsyncThrowsOnInvalidNumberOfPoints(ushort numberOfPoints)
+        public async Task ReadInputRegistersAsyncThrowsOnInvalidNumberOfPoints(ushort numOfPoints)
         {
             // Arrange
             var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
@@ -167,7 +167,7 @@ namespace NModbusAsync.Test.Unit
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
                 "numberOfPoints",
-                () => target.ReadInputRegistersAsync(1, 0, numberOfPoints));
+                () => target.ReadInputRegistersAsync(1, 0, numOfPoints));
         }
 
         [Fact]
