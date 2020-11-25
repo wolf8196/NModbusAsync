@@ -253,6 +253,39 @@ namespace NModbusAsync.Test.Unit
 
         [Fact]
         [Trait("Category", "Unit")]
+        public void CanBeDisposedMultipleTimes()
+        {
+            // Arrange
+            var pipeResource = new Mock<IPipeResource>();
+            var target = new Mock<ModbusTransport>(pipeResource.Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>());
+
+            // Act
+            target.Object.Dispose();
+            target.Object.Dispose();
+
+            // Assert
+            pipeResource.Verify(x => x.Dispose(), Times.Once());
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public void DisposesInThreadSafeManner()
+        {
+            // Arrange
+            var pipeResource = new Mock<IPipeResource>();
+
+            var target = new Mock<ModbusTransport>(pipeResource.Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>());
+            var targetObj = target.Object;
+
+            // Act
+            Task.WaitAll(Task.Run(() => targetObj.Dispose()), Task.Run(() => targetObj.Dispose()));
+
+            // Assert
+            pipeResource.Verify(x => x.Dispose(), Times.Once());
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
         public void SetsReadTimeout()
         {
             // Arrange
