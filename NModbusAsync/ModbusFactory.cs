@@ -27,7 +27,7 @@ namespace NModbusAsync
         public IModbusMaster CreateMaster<TResource>(TResource tcpClient, IModbusLogger logger) where TResource : TcpClient
         {
             return new ModbusMaster(
-                new ModbusIpTransport(
+                new ModbusTcpTransport(
                     new PipeAdapter<TResource>(
                         new TcpClientAdapter<TResource>(tcpClient)),
                     logger,

@@ -8,12 +8,12 @@ using NModbusAsync.Utility;
 
 namespace NModbusAsync.IO
 {
-    internal sealed class ModbusIpTransport : ModbusTransport
+    internal sealed class ModbusTcpTransport : ModbusTransport
     {
         private const int MbapHeaderSizeOnRequest = 7;
         private const int MbapHeaderSizeOnResponse = 6;
 
-        internal ModbusIpTransport(IPipeResource pipeResource, IModbusLogger logger, ITransactionIdProvider transactionIdProvider)
+        internal ModbusTcpTransport(IPipeResource pipeResource, IModbusLogger logger, ITransactionIdProvider transactionIdProvider)
             : base(pipeResource, logger, transactionIdProvider)
         {
         }
