@@ -6,17 +6,17 @@ using Xunit;
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class WriteMultipleRegistersTest : IntergrationTest
+    public class WriteMultipleRegistersTest : IntegrationTest
     {
         public WriteMultipleRegistersTest()
-            : base(8)
+            : base(TcpMaster, 8)
         {
             // Arrange
         }
 
         [Theory]
         [MemberData(nameof(GetWriteData))]
-        [Trait("Category", "Intergration")]
+        [Trait("Category", "Integration")]
         public async Task WritesSuccessfully(ushort startAddress, ushort[] expected)
         {
             // Act
