@@ -14,7 +14,7 @@ namespace NModbusAsync.IO
         private const int MbapHeaderSizeOnResponse = 6;
 
         internal ModbusTcpTransport(IPipeResource pipeResource, IModbusLogger logger, ITransactionIdProvider transactionIdProvider)
-            : base(pipeResource, logger, transactionIdProvider)
+            : base(pipeResource, transactionIdProvider, logger)
         {
         }
 

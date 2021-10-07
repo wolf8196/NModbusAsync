@@ -15,7 +15,7 @@ namespace NModbusAsync.IO
 
         private int waitToRetryMilliseconds;
 
-        protected ModbusTransport(IPipeResource pipeResource, IModbusLogger logger, ITransactionIdProvider transactionIdProvider)
+        protected ModbusTransport(IPipeResource pipeResource, ITransactionIdProvider transactionIdProvider, IModbusLogger logger)
         {
             PipeResource = pipeResource ?? throw new ArgumentNullException(nameof(pipeResource));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
