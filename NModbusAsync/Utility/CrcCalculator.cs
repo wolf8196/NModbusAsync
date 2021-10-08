@@ -41,21 +41,6 @@ namespace NModbusAsync.IO
             0X8201, 0X42C0, 0X4380, 0X8341, 0X4100, 0X81C1, 0X8081, 0X4040
         };
 
-        public static bool TryWriteCrc(Span<byte> destination, Span<byte> data)
-        {
-            ushort crc = Calculate(data);
-
-            NetCoreBitConverter.TryWriteBytes(destination, (short)crc);
-            return true;
-        }
-
-        public static bool ValidateCrc(ReadOnlySpan<byte> crc, ReadOnlySpan<byte> data)
-        {
-            ushort crcNum = Calculate(data);
-
-            return NetCoreBitConverter.ToInt16(crc) == (short)crcNum;
-        }
-
         public static ushort Calculate(ReadOnlySpan<byte> data)
         {
             ushort crc = ushort.MaxValue;
