@@ -6,10 +6,10 @@ using Xunit;
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class ReadInputRegistersTest : IntegrationTest
+    public abstract class ReadInputRegistersTest : IntegrationTest
     {
-        public ReadInputRegistersTest()
-            : base(TcpMaster, 2)
+        protected ReadInputRegistersTest(string masterType)
+            : base(masterType, 2)
         {
             // Arrange
         }

@@ -6,10 +6,10 @@ using Xunit;
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class WriteMultipleRegistersTest : IntegrationTest
+    public abstract class WriteMultipleRegistersTest : IntegrationTest
     {
-        public WriteMultipleRegistersTest()
-            : base(TcpMaster, 8)
+        protected WriteMultipleRegistersTest(string masterType)
+            : base(masterType, 8)
         {
             // Arrange
         }

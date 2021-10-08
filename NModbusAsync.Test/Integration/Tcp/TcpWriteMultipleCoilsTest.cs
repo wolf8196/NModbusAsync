@@ -3,9 +3,9 @@
 namespace NModbusAsync.Test.Integration.Tcp
 {
     [ExcludeFromCodeCoverage]
-    public class TcpReadCoilsTest : ReadCoilsTest
+    public class TcpWriteMultipleCoilsTest : WriteMultipleCoilsTest
     {
-        public TcpReadCoilsTest()
+        public TcpWriteMultipleCoilsTest()
         : base(TcpMaster)
         {
         }

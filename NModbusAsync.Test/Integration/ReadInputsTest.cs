@@ -1,15 +1,14 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class ReadInputsTest : IntegrationTest
+    public abstract class ReadInputsTest : IntegrationTest
     {
-        public ReadInputsTest()
-            : base(TcpMaster, 4)
+        protected ReadInputsTest(string masterType)
+            : base(masterType, 4)
         {
             // Arrange
         }

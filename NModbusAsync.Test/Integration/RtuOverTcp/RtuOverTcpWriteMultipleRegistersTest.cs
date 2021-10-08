@@ -3,9 +3,9 @@
 namespace NModbusAsync.Test.Integration.RtuOverTcp
 {
     [ExcludeFromCodeCoverage]
-    public class RtuOverTcpReadCoilsTest : ReadCoilsTest
+    public class RtuOverTcpWriteMultipleRegistersTest : WriteMultipleRegistersTest
     {
-        public RtuOverTcpReadCoilsTest()
+        public RtuOverTcpWriteMultipleRegistersTest()
         : base(RtuOverTpcMaster)
         {
         }

@@ -7,10 +7,10 @@ using Xunit;
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class ReadHoldingRegistersTest : IntegrationTest
+    public abstract class ReadHoldingRegistersTest : IntegrationTest
     {
-        public ReadHoldingRegistersTest()
-            : base(TcpMaster, 1)
+        protected ReadHoldingRegistersTest(string masterType)
+            : base(masterType, 1)
         {
             // Arrange
         }
