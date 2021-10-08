@@ -7,7 +7,7 @@ namespace NModbusAsync
     {
         internal SlaveException(SlaveExceptionResponse slaveExceptionResponse)
         {
-            if (slaveExceptionResponse is null)
+            if (slaveExceptionResponse == null)
             {
                 throw new ArgumentNullException(nameof(slaveExceptionResponse));
             }
