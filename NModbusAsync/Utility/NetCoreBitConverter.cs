@@ -17,6 +17,11 @@ namespace NModbusAsync.Utility
             return true;
         }
 
+        internal static bool TryWriteBytes(Span<byte> destination, ushort value)
+        {
+            return TryWriteBytes(destination, (short)value);
+        }
+
         internal static short ToInt16(ReadOnlySpan<byte> value)
         {
             if (value.Length < sizeof(short))
@@ -25,6 +30,11 @@ namespace NModbusAsync.Utility
             }
 
             return Unsafe.ReadUnaligned<short>(ref MemoryMarshal.GetReference(value));
+        }
+
+        internal static ushort ToUInt16(ReadOnlySpan<byte> value)
+        {
+            return (ushort)ToInt16(value);
         }
     }
 }
