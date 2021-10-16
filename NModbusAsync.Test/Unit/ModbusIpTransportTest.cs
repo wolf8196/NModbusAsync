@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NModbusAsync.IO;
+using NModbusAsync.IO.Abstractions;
 using NModbusAsync.Messages;
 using Xunit;
 
@@ -21,7 +22,7 @@ namespace NModbusAsync.Test.Unit
             // Arrange
             var request = new ReadHoldingRegistersRequest(1, 1, 1);
             var response = new byte[] { 0, 1, 0, 0, 0, 5, 1, 3, 2, 0, 0 };
-            var responseSequence = new ReadOnlySequence<byte>(response.AsMemory(0, 11));
+            var responseSequence = new ReadOnlySequence<byte>(response.AsMemory());
             var pipeAdapterMock = new Mock<IPipeResource>();
             pipeAdapterMock.Setup(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
             pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<CancellationToken>()))

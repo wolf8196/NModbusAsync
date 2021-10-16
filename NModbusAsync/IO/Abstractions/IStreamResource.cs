@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace NModbusAsync.IO
+namespace NModbusAsync.IO.Abstractions
 {
     internal interface IStreamResource<out TResource> : IDisposable
     {

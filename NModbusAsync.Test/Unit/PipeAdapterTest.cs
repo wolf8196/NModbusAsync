@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NModbusAsync.IO;
+using NModbusAsync.IO.Abstractions;
 using Xunit;
 
 namespace NModbusAsync.Test.Unit

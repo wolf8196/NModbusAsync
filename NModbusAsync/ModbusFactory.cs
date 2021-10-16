@@ -46,7 +46,8 @@ namespace NModbusAsync
                     new PipeAdapter<TResource>(
                         new TcpClientAdapter<TResource>(tcpClient)),
                     logger,
-                    new TransactionIdProvider()));
+                    new TransactionIdProvider(),
+                    new CrcCalculator()));
         }
     }
 }

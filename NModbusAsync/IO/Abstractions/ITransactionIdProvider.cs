@@ -1,4 +1,4 @@
-﻿namespace NModbusAsync.IO
+﻿namespace NModbusAsync.IO.Abstractions
 {
     internal interface ITransactionIdProvider
     {

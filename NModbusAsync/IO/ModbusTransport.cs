@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using NModbusAsync.IO.Abstractions;
 using NModbusAsync.Messages;
 
 namespace NModbusAsync.IO

@@ -1,9 +1,9 @@
 ﻿using System;
-using NModbusAsync.Utility;
+using NModbusAsync.IO.Abstractions;
 
 namespace NModbusAsync.IO
 {
-    internal static class CrcCalculator
+    internal sealed class CrcCalculator : ICrcCalculator
     {
         private static readonly ushort[] CrcTable =
         {
@@ -41,7 +41,7 @@ namespace NModbusAsync.IO
             0X8201, 0X42C0, 0X4380, 0X8341, 0X4100, 0X81C1, 0X8081, 0X4040
         };
 
-        public static ushort Calculate(ReadOnlySpan<byte> data)
+        public ushort Calculate(ReadOnlySpan<byte> data)
         {
             ushort crc = ushort.MaxValue;
 
@@ -53,6 +53,12 @@ namespace NModbusAsync.IO
             }
 
             return crc;
+        }
+
+        public ushort Calculate(ReadOnlyMemory<byte> data)
+        {
+            var dataSpan = data.Span;
+            return Calculate(dataSpan);
         }
     }
 }

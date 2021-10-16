@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Moq;
 using Moq.Protected;
 using NModbusAsync.IO;
+using NModbusAsync.IO.Abstractions;
 using NModbusAsync.Messages;
 using NModbusAsync.Test.Helpers;
 using Xunit;

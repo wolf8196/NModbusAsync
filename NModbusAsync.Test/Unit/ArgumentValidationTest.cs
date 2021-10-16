@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Moq;
 using NModbusAsync.Devices;
 using NModbusAsync.IO;
+using NModbusAsync.IO.Abstractions;
 using NModbusAsync.Messages;
 using NModbusAsync.Utility;
 using Xunit;
