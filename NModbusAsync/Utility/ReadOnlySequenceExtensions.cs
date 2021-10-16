@@ -16,5 +16,16 @@ namespace NModbusAsync.Utility
 
             return buffer.ToArray();
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ReadOnlyMemory<byte> ToMemory(this ReadOnlySequence<byte> buffer)
+        {
+            if (buffer.IsSingleSegment)
+            {
+                return buffer.First;
+            }
+
+            return buffer.ToArray();
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
+using NModbusAsync.IO.Abstractions;
 
 namespace NModbusAsync.IO
 {

@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using NModbusAsync.IO.Abstractions;
 
 namespace NModbusAsync.IO
 {

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Moq;
 using Moq.Protected;
 using NModbusAsync.IO;
+using NModbusAsync.IO.Abstractions;
 using NModbusAsync.Messages;
 using NModbusAsync.Test.Helpers;
 using Xunit;
@@ -21,7 +22,7 @@ namespace NModbusAsync.Test.Unit
         public async Task RetriesOnSlaveExceptionCodeAcknowledge()
         {
             // Arrange
-            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
             var request = new ReadHoldingRegistersRequest(1, 1, 1);
             var response = ModbusResponseFactory.CreateResponse<ReadHoldingRegistersResponse>(
                 new byte[] { 1, 3, 2, 0, 1 });
@@ -59,7 +60,7 @@ namespace NModbusAsync.Test.Unit
         public async Task ThrowsOnSlaveExceptionResponse(SlaveExceptionCode exceptionCode)
         {
             // Arrange
-            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
             var request = new ReadHoldingRegistersRequest(1, 1, 1);
             var response = ModbusResponseFactory.CreateResponse<SlaveExceptionResponse>(
                 new byte[] { 1, 129, (byte)exceptionCode });
@@ -86,7 +87,7 @@ namespace NModbusAsync.Test.Unit
         public async Task RetriesOnSlaveExceptionCodeSlaveDeviceBusyIgnoringRetryCount()
         {
             // Arrange
-            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
             target.Object.Retries = 3;
             target.Object.SlaveBusyUsesRetryCount = false;
             var request = new ReadHoldingRegistersRequest(1, 1, 1);
@@ -119,7 +120,7 @@ namespace NModbusAsync.Test.Unit
         public async Task ThrowsOnSlaveExceptionCodeSlaveDeviceBusyWhenExceedesRetryCount()
         {
             // Arrange
-            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
             target.Object.Retries = 2;
             target.Object.SlaveBusyUsesRetryCount = true;
             var request = new ReadHoldingRegistersRequest(1, 1, 1);
@@ -149,7 +150,7 @@ namespace NModbusAsync.Test.Unit
         public async Task ThrowsOnSocketExceptions(Exception exception)
         {
             // Arrange
-            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
             target.SetupThrowsWriteRequestAsync(exception);
 
             // Act
@@ -169,7 +170,7 @@ namespace NModbusAsync.Test.Unit
         public async Task RetriesOnSpecificExceptions(Exception exception)
         {
             // Arrange
-            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
             target.Object.Retries = 2;
 
             target.SetupThrowsWriteRequestAsync(exception);
@@ -191,7 +192,7 @@ namespace NModbusAsync.Test.Unit
         public async Task ThrowsOnUnexpectedException()
         {
             // Arrange
-            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
             var exception = new Exception();
             target.Object.Retries = 2;
 
@@ -213,7 +214,7 @@ namespace NModbusAsync.Test.Unit
         public async Task RetriesToReadResponse()
         {
             // Arrange
-            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
             var request = new WriteMultipleCoilsRequest(1, 1, new bool[] { true });
             var response = new WriteMultipleCoilsResponse();
 
@@ -242,7 +243,7 @@ namespace NModbusAsync.Test.Unit
             // Arrange
             var pipeResource = new Mock<IPipeResource>();
             pipeResource.Setup(x => x.Dispose());
-            var target = new Mock<ModbusTransport>(pipeResource.Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(pipeResource.Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
 
             // Act
             target.Object.Dispose();
@@ -257,7 +258,7 @@ namespace NModbusAsync.Test.Unit
         {
             // Arrange
             var pipeResource = new Mock<IPipeResource>();
-            var target = new Mock<ModbusTransport>(pipeResource.Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>());
+            var target = new Mock<ModbusTransport>(pipeResource.Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>());
 
             // Act
             target.Object.Dispose();
@@ -274,7 +275,7 @@ namespace NModbusAsync.Test.Unit
             // Arrange
             var pipeResource = new Mock<IPipeResource>();
 
-            var target = new Mock<ModbusTransport>(pipeResource.Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>());
+            var target = new Mock<ModbusTransport>(pipeResource.Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>());
             var targetObj = target.Object;
 
             // Act
@@ -290,7 +291,7 @@ namespace NModbusAsync.Test.Unit
         {
             // Arrange
             var pipeAdapterMock = new Mock<IPipeResource>();
-            var target = new Mock<ModbusTransport>(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(pipeAdapterMock.Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
 
             target.Object.ReadTimeout = 1000;
 
@@ -304,7 +305,7 @@ namespace NModbusAsync.Test.Unit
             // Arrange
             var pipeAdapterMock = new Mock<IPipeResource>();
             pipeAdapterMock.Setup(x => x.ReadTimeout).Returns(1000);
-            var target = new Mock<ModbusTransport>(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(pipeAdapterMock.Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
 
             Assert.Equal(1000, target.Object.ReadTimeout);
         }
@@ -315,7 +316,7 @@ namespace NModbusAsync.Test.Unit
         {
             // Arrange
             var pipeAdapterMock = new Mock<IPipeResource>();
-            var target = new Mock<ModbusTransport>(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(pipeAdapterMock.Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
 
             target.Object.WriteTimeout = 1000;
 
@@ -329,7 +330,7 @@ namespace NModbusAsync.Test.Unit
             // Arrange
             var pipeAdapterMock = new Mock<IPipeResource>();
             pipeAdapterMock.Setup(x => x.WriteTimeout).Returns(1000);
-            var target = new Mock<ModbusTransport>(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(pipeAdapterMock.Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
 
             Assert.Equal(1000, target.Object.WriteTimeout);
         }
@@ -339,7 +340,7 @@ namespace NModbusAsync.Test.Unit
         public void SetsWaitToRetryMilliseconds()
         {
             // Arrange
-            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), Mock.Of<ITransactionIdProvider>()) { CallBase = true };
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<IModbusLogger>()) { CallBase = true };
 
             target.Object.WaitToRetryMilliseconds = 1000;
 

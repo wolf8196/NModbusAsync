@@ -10,7 +10,7 @@ namespace NModbusAsync.Test.Integration
     public class ModbusFactoryTest
     {
         [Fact]
-        [Trait("Category", "Intergration")]
+        [Trait("Category", "Integration")]
         public void PassesLoggerToMasterFromConstructor()
         {
             // Arrange
@@ -18,11 +18,11 @@ namespace NModbusAsync.Test.Integration
             var client = new TcpClient("127.0.0.1", 502);
 
             // Act/Assert
-            Assert.Throws<ArgumentNullException>(() => target.CreateMaster(client));
+            Assert.Throws<ArgumentNullException>(() => target.CreateTcpMaster(client));
         }
 
         [Fact]
-        [Trait("Category", "Intergration")]
+        [Trait("Category", "Integration")]
         public void PassesLoggerToMasterFromParameter()
         {
             // Arrange
@@ -30,7 +30,7 @@ namespace NModbusAsync.Test.Integration
             var client = new TcpClient("127.0.0.1", 502);
 
             // Act/Assert
-            Assert.Throws<ArgumentNullException>(() => target.CreateMaster(client, null));
+            Assert.Throws<ArgumentNullException>(() => target.CreateTcpMaster(client, null));
         }
     }
 }

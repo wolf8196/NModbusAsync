@@ -88,7 +88,7 @@ namespace NModbusAsync.Devices
 
         private static void ValidateData<T>(T[] data, int maxDataLength)
         {
-            if (data is null)
+            if (data == null)
             {
                 throw new ArgumentNullException(nameof(data));
             }

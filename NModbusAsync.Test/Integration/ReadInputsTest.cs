@@ -1,22 +1,21 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class ReadInputsTest : IntergrationTest
+    public abstract class ReadInputsTest : IntegrationTest
     {
-        public ReadInputsTest()
-            : base(4)
+        protected ReadInputsTest(string masterType)
+            : base(masterType, 4)
         {
             // Arrange
         }
 
         [Theory]
         [MemberData((nameof(GetReadResults)))]
-        [Trait("Category", "Intergration")]
+        [Trait("Category", "Integration")]
         public async Task ReadSuccessfully(ushort startAddress, ushort numberOfPoints, bool[] expected)
         {
             // Act

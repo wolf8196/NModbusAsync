@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -7,17 +6,17 @@ using Xunit;
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class ReadHoldingRegistersTest : IntergrationTest
+    public abstract class ReadHoldingRegistersTest : IntegrationTest
     {
-        public ReadHoldingRegistersTest()
-            : base(1)
+        protected ReadHoldingRegistersTest(string masterType)
+            : base(masterType, 1)
         {
             // Arrange
         }
 
         [Theory]
         [MemberData((nameof(GetReadResults)))]
-        [Trait("Category", "Intergration")]
+        [Trait("Category", "Integration")]
         public async Task ReadSuccessfully(ushort startAddress, ushort numberOfPoints, ushort[] expected)
         {
             // Act

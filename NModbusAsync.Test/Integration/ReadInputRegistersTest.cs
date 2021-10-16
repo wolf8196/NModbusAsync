@@ -6,17 +6,17 @@ using Xunit;
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class ReadInputRegistersTest : IntergrationTest
+    public abstract class ReadInputRegistersTest : IntegrationTest
     {
-        public ReadInputRegistersTest()
-            : base(2)
+        protected ReadInputRegistersTest(string masterType)
+            : base(masterType, 2)
         {
             // Arrange
         }
 
         [Theory]
         [MemberData((nameof(GetReadResults)))]
-        [Trait("Category", "Intergration")]
+        [Trait("Category", "Integration")]
         public async Task ReadSuccessfully(ushort startAddress, ushort numberOfPoints, ushort[] expected)
         {
             // Act

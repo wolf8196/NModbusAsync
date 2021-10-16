@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using NModbusAsync.IO.Abstractions;
 using NModbusAsync.Messages;
 
 namespace NModbusAsync.IO
@@ -15,7 +16,7 @@ namespace NModbusAsync.IO
 
         private int waitToRetryMilliseconds;
 
-        protected ModbusTransport(IPipeResource pipeResource, IModbusLogger logger, ITransactionIdProvider transactionIdProvider)
+        protected ModbusTransport(IPipeResource pipeResource, ITransactionIdProvider transactionIdProvider, IModbusLogger logger)
         {
             PipeResource = pipeResource ?? throw new ArgumentNullException(nameof(pipeResource));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));

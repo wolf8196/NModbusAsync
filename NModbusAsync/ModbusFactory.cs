@@ -19,19 +19,35 @@ namespace NModbusAsync
             this.logger = logger;
         }
 
-        public IModbusMaster CreateMaster<TResource>(TResource tcpClient) where TResource : TcpClient
+        public IModbusMaster CreateTcpMaster<TResource>(TResource tcpClient) where TResource : TcpClient
         {
-            return CreateMaster(tcpClient, logger);
+            return CreateTcpMaster(tcpClient, logger);
         }
 
-        public IModbusMaster CreateMaster<TResource>(TResource tcpClient, IModbusLogger logger) where TResource : TcpClient
+        public IModbusMaster CreateTcpMaster<TResource>(TResource tcpClient, IModbusLogger logger) where TResource : TcpClient
         {
             return new ModbusMaster(
-                new ModbusIpTransport(
+                new ModbusTcpTransport(
                     new PipeAdapter<TResource>(
                         new TcpClientAdapter<TResource>(tcpClient)),
                     logger,
                     new TransactionIdProvider()));
+        }
+
+        public IModbusMaster CreateRtuOverTcpMaster<TResource>(TResource tcpClient) where TResource : TcpClient
+        {
+            return CreateRtuOverTcpMaster(tcpClient, logger);
+        }
+
+        public IModbusMaster CreateRtuOverTcpMaster<TResource>(TResource tcpClient, IModbusLogger logger) where TResource : TcpClient
+        {
+            return new ModbusMaster(
+                new ModbusRtuOverTcpTransport(
+                    new PipeAdapter<TResource>(
+                        new TcpClientAdapter<TResource>(tcpClient)),
+                    logger,
+                    new TransactionIdProvider(),
+                    new CrcCalculator()));
         }
     }
 }

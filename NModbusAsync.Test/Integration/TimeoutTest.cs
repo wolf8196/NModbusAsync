@@ -6,16 +6,16 @@ using Xunit;
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class TimeoutTest : IntergrationTest
+    public class TimeoutTest : IntegrationTest
     {
         public TimeoutTest()
-            : base(9)
+            : base(TcpMaster, 9)
         {
             // Arrange
         }
 
         [Fact]
-        [Trait("Category", "Intergration")]
+        [Trait("Category", "Integration")]
         public async Task ThrowsOnTimeout()
         {
             // Arrange

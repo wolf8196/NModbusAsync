@@ -6,17 +6,17 @@ using Xunit;
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
-    public class WriteMultipleCoilsTest : IntergrationTest
+    public abstract class WriteMultipleCoilsTest : IntegrationTest
     {
-        public WriteMultipleCoilsTest()
-            : base(7)
+        protected WriteMultipleCoilsTest(string masterType)
+            : base(masterType, 7)
         {
             // Arrange
         }
 
         [Theory]
         [MemberData(nameof(GetWriteData))]
-        [Trait("Category", "Intergration")]
+        [Trait("Category", "Integration")]
         public async Task WritesSuccessfully(ushort startAddress, bool[] expected)
         {
             // Act
