@@ -11,7 +11,7 @@ namespace NModbusAsync.Messages
 
         public override string ToString()
         {
-            return $"Read {NumberOfPoints} inputs starting at address {StartAddress} from slave {SlaveAddress}.";
+            return $"Read {NumberOfPoints} inputs starting at address {StartAddress} from slave {SlaveAddress}";
         }
     }
 }

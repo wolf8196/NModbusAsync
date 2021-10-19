@@ -6,7 +6,7 @@ namespace NModbusAsync.Devices
     {
         protected ModbusDevice(IModbusTransport transport)
         {
-            Transport = transport ?? throw new ArgumentNullException(nameof(transport));
+            Transport = transport;
         }
 
         public IModbusTransport Transport { get; }

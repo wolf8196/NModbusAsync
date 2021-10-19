@@ -7,7 +7,7 @@ namespace NModbusAsync.Messages
     {
         public override string ToString()
         {
-            return $"Wrote single coil {(Value == Constants.CoilOn ? 1 : 0)} at address {StartAddress} into slave {SlaveAddress}.";
+            return $"Wrote single coil {(Value == Constants.CoilOn ? 1 : 0)} at address {StartAddress} into slave {SlaveAddress}";
         }
     }
 }

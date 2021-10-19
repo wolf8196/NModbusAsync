@@ -11,7 +11,7 @@ namespace NModbusAsync.Messages
 
         public override string ToString()
         {
-            return $"Write single holding register {Value} at address {StartAddress} into slave {SlaveAddress}.";
+            return $"Write single holding register {Value} at address {StartAddress} into slave {SlaveAddress}";
         }
     }
 }

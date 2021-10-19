@@ -6,7 +6,7 @@ namespace NModbusAsync.Messages
     {
         public override string ToString()
         {
-            return $"Wrote {NumberOfPoints} coils starting at address {StartAddress} into slave {SlaveAddress}.";
+            return $"Wrote {NumberOfPoints} coils starting at address {StartAddress} into slave {SlaveAddress}";
         }
     }
 }

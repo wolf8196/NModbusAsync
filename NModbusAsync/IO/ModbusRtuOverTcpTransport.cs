@@ -3,6 +3,7 @@ using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NModbusAsync.IO.Abstractions;
 using NModbusAsync.Messages;
 using NModbusAsync.Utility;
@@ -17,7 +18,7 @@ namespace NModbusAsync.IO
 
         private readonly ICrcCalculator crcCalculator;
 
-        public ModbusRtuOverTcpTransport(IPipeResource pipeResource, IModbusLogger logger, ITransactionIdProvider transactionIdProvider, ICrcCalculator crcCalculator)
+        public ModbusRtuOverTcpTransport(IPipeResource pipeResource, ITransactionIdProvider transactionIdProvider, ICrcCalculator crcCalculator, ILogger<IModbusMaster> logger)
             : base(pipeResource, transactionIdProvider, logger)
         {
             this.crcCalculator = crcCalculator;

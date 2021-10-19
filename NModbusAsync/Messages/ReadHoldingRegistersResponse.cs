@@ -6,7 +6,7 @@ namespace NModbusAsync.Messages
     {
         public override string ToString()
         {
-            return $"Read {Data.Length} holding registers from slave {SlaveAddress}.";
+            return $"Read {Data.Length} holding registers from slave {SlaveAddress}";
         }
     }
 }

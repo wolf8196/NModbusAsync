@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NModbusAsync.IO;
 using NModbusAsync.IO.Abstractions;
@@ -37,7 +38,7 @@ namespace NModbusAsync.Test.Unit
             var crcCalculator = new Mock<ICrcCalculator>();
             crcCalculator.Setup(x => x.Calculate(It.IsAny<ReadOnlyMemory<byte>>())).Returns(0);
 
-            var target = new ModbusRtuOverTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object, crcCalculator.Object);
+            var target = new ModbusRtuOverTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, crcCalculator.Object, Mock.Of<ILogger<IModbusMaster>>());
 
             // Act
             var actual = await target.SendAsync<ReadHoldingRegistersResponse>(request, It.IsAny<CancellationToken>());
@@ -65,7 +66,7 @@ namespace NModbusAsync.Test.Unit
             var crcCalculator = new Mock<ICrcCalculator>();
             crcCalculator.Setup(x => x.Calculate(It.IsAny<ReadOnlyMemory<byte>>())).Returns(0);
 
-            var target = new ModbusRtuOverTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object, crcCalculator.Object);
+            var target = new ModbusRtuOverTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, crcCalculator.Object, Mock.Of<ILogger<IModbusMaster>>());
 
             // Act
             var ex = await Assert.ThrowsAsync<IOException>(() => target.SendAsync<ReadHoldingRegistersResponse>(request, It.IsAny<CancellationToken>()));
@@ -92,7 +93,7 @@ namespace NModbusAsync.Test.Unit
             var crcCalculator = new Mock<ICrcCalculator>();
             crcCalculator.Setup(x => x.Calculate(It.IsAny<ReadOnlyMemory<byte>>())).Returns(0);
 
-            var target = new ModbusRtuOverTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object, crcCalculator.Object);
+            var target = new ModbusRtuOverTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, crcCalculator.Object, Mock.Of<ILogger<IModbusMaster>>());
 
             // Act
             var ex = await Assert.ThrowsAsync<SlaveException>(() => target.SendAsync<ReadHoldingRegistersResponse>(request, It.IsAny<CancellationToken>()));
@@ -119,7 +120,7 @@ namespace NModbusAsync.Test.Unit
             var crcCalculator = new Mock<ICrcCalculator>();
             crcCalculator.Setup(x => x.Calculate(It.IsAny<ReadOnlyMemory<byte>>())).Returns(0);
 
-            var target = new ModbusRtuOverTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object, crcCalculator.Object);
+            var target = new ModbusRtuOverTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, crcCalculator.Object, Mock.Of<ILogger<IModbusMaster>>());
 
             // Act
             var ex = await Assert.ThrowsAsync<ArgumentException>(() => target.SendAsync<ReadHoldingRegistersResponse>(request, It.IsAny<CancellationToken>()));

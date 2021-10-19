@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NModbusAsync.IO.Abstractions;
 using NModbusAsync.Messages;
 
@@ -16,12 +17,12 @@ namespace NModbusAsync.IO
 
         private int waitToRetryMilliseconds;
 
-        protected ModbusTransport(IPipeResource pipeResource, ITransactionIdProvider transactionIdProvider, IModbusLogger logger)
+        protected ModbusTransport(IPipeResource pipeResource, ITransactionIdProvider transactionIdProvider, ILogger<IModbusMaster> logger)
         {
-            PipeResource = pipeResource ?? throw new ArgumentNullException(nameof(pipeResource));
-            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            PipeResource = pipeResource;
+            Logger = logger;
 
-            this.transactionIdProvider = transactionIdProvider ?? throw new ArgumentNullException(nameof(transactionIdProvider));
+            this.transactionIdProvider = transactionIdProvider;
 
             semaphoreSlim = new SemaphoreSlim(1, 1);
             disposingTokenSource = new CancellationTokenSource();
@@ -57,7 +58,7 @@ namespace NModbusAsync.IO
 
         public IPipeResource PipeResource { get; }
 
-        protected IModbusLogger Logger { get; }
+        protected ILogger<IModbusMaster> Logger { get; }
 
         public async Task<TResponse> SendAsync<TResponse>(IModbusRequest request, CancellationToken token = default)
             where TResponse : IModbusResponse, new()
@@ -68,7 +69,7 @@ namespace NModbusAsync.IO
             var success = false;
             request.TransactionId = transactionIdProvider.NewId();
 
-            LogRequest(request);
+            Logger.LogTrace("Sending modbus request. TransactionId: {TransactionId}, Request: {Request}.", request.TransactionId, request);
 
             using (var currCallTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token, disposingTokenSource.Token))
             {
@@ -97,7 +98,7 @@ namespace NModbusAsync.IO
 
                                     if (readAgain)
                                     {
-                                        LogAcknowledgeResponse(request);
+                                        Logger.LogDebug("Received slave exception code 'Acknowledge' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and retrying to read response. Request: {Request}.", WaitToRetryMilliseconds, request);
                                         await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
                                     }
                                     else
@@ -137,19 +138,19 @@ namespace NModbusAsync.IO
                             throw;
                         }
 
-                        LogSlaveDeviceBusyResponse(request);
+                        Logger.LogWarning("Received slave exception code 'SlaveDeviceBusy' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and resubmitting request. Request: {request}.", WaitToRetryMilliseconds, request);
                         await DelayRetryWithExceptionHandling(token);
                     }
                     catch (Exception ex)
                     {
                         if (ex is SocketException || ex.InnerException is SocketException)
                         {
-                            LogSocketException(request, ex);
+                            Logger.LogError(ex, "Socket error occured while sending request. Request: {Request}.", request);
                             throw;
                         }
                         else if (ex is FormatException || ex is IOException || ex is TimeoutException)
                         {
-                            LogException(request, ex, attempt);
+                            Logger.LogError(ex, "Error occured while sending request. {RetryLeft} retries remaining. Request: {Request}.", Retries - attempt + 1, request);
                             if (attempt++ > Retries)
                             {
                                 throw;
@@ -163,7 +164,7 @@ namespace NModbusAsync.IO
                 }
                 while (!success);
 
-                LogResponse(response);
+                Logger.LogTrace("Returning modbus response. TransactionId: {TransactionId}, Response: {Response}.", response.TransactionId, response);
 
                 return (TResponse)response;
             }
@@ -198,53 +199,6 @@ namespace NModbusAsync.IO
         protected abstract bool RetryReadResponse(IModbusRequest request, IModbusResponse response);
 
         protected abstract void Validate(IModbusRequest request, IModbusResponse response);
-
-        private void LogRequest(IModbusRequest request)
-        {
-            Logger.Log(LogLevel.Trace, $@"Sending modbus request.
-TransactionId: {request.TransactionId}
-Request: {request}");
-        }
-
-        private void LogResponse(IModbusResponse response)
-        {
-            Logger.Log(LogLevel.Trace, $@"Sending modbus request.
-TransactionId: {response.TransactionId}
-Response: {response}");
-        }
-
-        private void LogAcknowledgeResponse(IModbusRequest request)
-        {
-            var message = $@"Received slave exception code 'Acknowledge' while sending request.
-Waiting {WaitToRetryMilliseconds} milliseconds and retrying to read response.
-Request: {request}.";
-            Logger.Log(LogLevel.Debug, message);
-        }
-
-        private void LogSlaveDeviceBusyResponse(IModbusRequest request)
-        {
-            var message = $@"Received slave exception code 'SlaveDeviceBusy' while sending request.
-Waiting {WaitToRetryMilliseconds} milliseconds and resubmitting request.
-Request: {request}.";
-            Logger.Log(LogLevel.Warning, message);
-        }
-
-        private void LogSocketException(IModbusRequest request, Exception ex)
-        {
-            var message = $@"Socket error occured while sending request.
-Request: {request}
-Exception: {ex.GetType().Name}";
-            Logger.Log(LogLevel.Error, message);
-        }
-
-        private void LogException(IModbusRequest request, Exception ex, int attempt)
-        {
-            var message = $@"Error occured while sending request.
-{Retries - attempt + 1} retries remaining.
-Request: {request}
-Exception: {ex.GetType().Name}";
-            Logger.Log(LogLevel.Error, message);
-        }
 
         private void ThrowIfDisposed()
         {

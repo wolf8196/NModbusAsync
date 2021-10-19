@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NModbusAsync.Devices;
 using NModbusAsync.IO;
@@ -19,58 +20,54 @@ namespace NModbusAsync.Test.Unit
     {
         [Fact]
         [Trait("Category", "Unit")]
-        public void ModbusMasterThrowsOnNullTransport()
+        public void ModbusFactoryThrowsOnNullLogger()
         {
             // Act/Assert
-            Assert.Throws<ArgumentNullException>("transport", () => new ModbusMaster(null));
+            Assert.Throws<ArgumentNullException>("logger", () => new ModbusFactory(null));
         }
 
         [Fact]
         [Trait("Category", "Unit")]
-        public void ModbusTransportThrowsOnNullPipeResource()
+        public void ModbusFactoryThrowsOnNullTcpClientPassedToCreateTcpMaster()
         {
+            // Arrange
+            var factory = new ModbusFactory();
+
             // Act/Assert
-            Assert.Throws<ArgumentNullException>("pipeResource", () => new ModbusTcpTransport(null, null, null));
+            Assert.Throws<ArgumentNullException>("tcpClient", () => factory.CreateTcpMaster((TcpClient)null));
         }
 
         [Fact]
         [Trait("Category", "Unit")]
-        public void ModbusTransportThrowsOnNullLogger()
+        public void ModbusFactoryThrowsOnNullTcpClientPassedToCreateRtuOverTcpMaster()
         {
+            // Arrange
+            var factory = new ModbusFactory();
+
             // Act/Assert
-            Assert.Throws<ArgumentNullException>("logger", () => new ModbusTcpTransport(new Mock<IPipeResource>().Object, null, null));
+            Assert.Throws<ArgumentNullException>("tcpClient", () => factory.CreateRtuOverTcpMaster((TcpClient)null));
         }
 
         [Fact]
         [Trait("Category", "Unit")]
-        public void ModbusTransportThrowsOnNullTransactionIdProvider()
+        public void ModbusFactoryThrowsOnNullLoggerPassedToCreateTcpMaster()
         {
+            // Arrange
+            var factory = new ModbusFactory();
+
             // Act/Assert
-            Assert.Throws<ArgumentNullException>("transactionIdProvider", () => new ModbusTcpTransport(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), null));
+            Assert.Throws<ArgumentNullException>("logger", () => factory.CreateTcpMaster(new TcpClient(), null));
         }
 
         [Fact]
         [Trait("Category", "Unit")]
-        public void PipeAdapterThrowsOnNullStreamResource()
+        public void ModbusFactoryThrowsOnNullLoggerPassedToCreateRtuOverTcpMaster()
         {
-            // Act/Assert
-            Assert.Throws<ArgumentNullException>("streamResource", () => new PipeAdapter<TcpClient>(null));
-        }
+            // Arrange
+            var factory = new ModbusFactory();
 
-        [Fact]
-        [Trait("Category", "Unit")]
-        public void TcpClientAdapterThrowsOnNullStreamResource()
-        {
             // Act/Assert
-            Assert.Throws<ArgumentNullException>("tcpClient", () => new TcpClientAdapter<TcpClient>(null));
-        }
-
-        [Fact]
-        [Trait("Category", "Unit")]
-        public void SlaveExceptionThrowsOnNullSlaveExceptionResponse()
-        {
-            // Act/Assert
-            Assert.Throws<ArgumentNullException>("slaveExceptionResponse", () => new SlaveException(null));
+            Assert.Throws<ArgumentNullException>("logger", () => factory.CreateRtuOverTcpMaster(new TcpClient(), null));
         }
 
         [Fact]
@@ -237,7 +234,7 @@ namespace NModbusAsync.Test.Unit
         public void ModbusTransportThrowsOnInvalidWaitToRetryMilliseconds(int milliseconds)
         {
             // Arrange
-            var transport = new ModbusTcpTransport(new Mock<IPipeResource>().Object, Mock.Of<IModbusLogger>(), new Mock<ITransactionIdProvider>().Object);
+            var transport = new ModbusTcpTransport(new Mock<IPipeResource>().Object, new Mock<ITransactionIdProvider>().Object, Mock.Of<ILogger<IModbusMaster>>());
 
             // Act/Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => transport.WaitToRetryMilliseconds = milliseconds);

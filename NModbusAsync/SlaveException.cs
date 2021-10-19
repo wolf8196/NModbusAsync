@@ -7,11 +7,6 @@ namespace NModbusAsync
     {
         internal SlaveException(SlaveExceptionResponse slaveExceptionResponse)
         {
-            if (slaveExceptionResponse == null)
-            {
-                throw new ArgumentNullException(nameof(slaveExceptionResponse));
-            }
-
             FunctionCode = slaveExceptionResponse.FunctionCode;
             SlaveExceptionCode = slaveExceptionResponse.SlaveExceptionCode;
             SlaveAddress = slaveExceptionResponse.SlaveAddress;

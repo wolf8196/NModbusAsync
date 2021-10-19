@@ -20,7 +20,7 @@ namespace NModbusAsync.Messages
 
         public override string ToString()
         {
-            return $"Write {NumberOfPoints} holding registers starting at address {StartAddress} into slave {SlaveAddress}.";
+            return $"Write {NumberOfPoints} holding registers starting at address {StartAddress} into slave {SlaveAddress}";
         }
 
         public override void WriteTo(Memory<byte> buffer)

@@ -20,7 +20,7 @@ namespace NModbusAsync.IO
 
         internal PipeAdapter(IStreamResource<TResource> streamResource)
         {
-            this.streamResource = streamResource ?? throw new ArgumentNullException(nameof(streamResource));
+            this.streamResource = streamResource;
 
             pipeWriter = PipeWriter.Create(streamResource.GetStream());
             pipeReader = PipeReader.Create(streamResource.GetStream());

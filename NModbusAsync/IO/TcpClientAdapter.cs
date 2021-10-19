@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net.Sockets;
 using NModbusAsync.IO.Abstractions;
 
@@ -9,7 +8,7 @@ namespace NModbusAsync.IO
     {
         internal TcpClientAdapter(TResource tcpClient)
         {
-            Resource = tcpClient ?? throw new ArgumentNullException(nameof(tcpClient));
+            Resource = tcpClient;
         }
 
         public TResource Resource { get; }

@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NModbusAsync.IO;
 using NModbusAsync.IO.Abstractions;
@@ -35,7 +36,7 @@ namespace NModbusAsync.Test.Unit
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
             transactionIdProviderMock.Setup(x => x.NewId()).Returns(1);
 
-            var target = new ModbusTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object);
+            var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>());
 
             // Act
             var actual = await target.SendAsync<ReadHoldingRegistersResponse>(request, It.IsAny<CancellationToken>());
@@ -63,7 +64,7 @@ namespace NModbusAsync.Test.Unit
                 .ReturnsAsync(newResponse);
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
             transactionIdProviderMock.Setup(x => x.NewId()).Returns(2);
-            var target = new ModbusTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object)
+            var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>())
             {
                 Retries = 2
             };
@@ -93,7 +94,7 @@ namespace NModbusAsync.Test.Unit
                 .ReturnsAsync(newResponse);
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
             transactionIdProviderMock.Setup(x => x.NewId()).Returns(2);
-            var target = new ModbusTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object)
+            var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>())
             {
                 Retries = 2
             };
@@ -121,7 +122,7 @@ namespace NModbusAsync.Test.Unit
                 .ReturnsAsync(newResponse);
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
             transactionIdProviderMock.Setup(x => x.NewId()).Returns(5);
-            var target = new ModbusTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object)
+            var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>())
             {
                 Retries = 0,
                 RetryOnOldResponseThreshold = 3
@@ -150,7 +151,7 @@ namespace NModbusAsync.Test.Unit
                 .ReturnsAsync(newResponse);
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
             transactionIdProviderMock.Setup(x => x.NewId()).Returns(2);
-            var target = new ModbusTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object)
+            var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>())
             {
                 Retries = 0,
                 RetryOnOldResponseThreshold = 1
@@ -179,7 +180,7 @@ namespace NModbusAsync.Test.Unit
                 .ReturnsAsync(newResponse);
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
             transactionIdProviderMock.Setup(x => x.NewId()).Returns(2);
-            var target = new ModbusTcpTransport(pipeAdapterMock.Object, Mock.Of<IModbusLogger>(), transactionIdProviderMock.Object)
+            var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>())
             {
                 Retries = 0,
                 RetryOnOldResponseThreshold = 2

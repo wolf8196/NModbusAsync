@@ -54,10 +54,7 @@ namespace NModbusAsync.Messages
                 message = Unknown;
             }
 
-            return $@"Function Code: {FunctionCode}.
-Exception Code: {(byte)SlaveExceptionCode}.
-Message: {message}
-Slave: {SlaveAddress}.";
+            return $@"Slave: {SlaveAddress}. Function Code: {FunctionCode}. Exception Code: {(byte)SlaveExceptionCode}. Message: {message}";
         }
     }
 }
