@@ -23,16 +23,12 @@ namespace NModbusAsync.Messages.Abstractions
         {
             if (FunctionCode != response.FunctionCode)
             {
-                throw new IOException($@"Received unexpected function code.
-Expected {FunctionCode}.
-Received {response.FunctionCode}.");
+                throw new IOException($"Received unexpected function code. Expected: {FunctionCode}. Received: {response.FunctionCode}.");
             }
 
             if (SlaveAddress != response.SlaveAddress)
             {
-                throw new IOException($@"Received unexpected slave address.
-Expected {SlaveAddress}.
-Received {response.SlaveAddress}.");
+                throw new IOException($"Received unexpected slave address. Expected: {SlaveAddress}. Received: {response.SlaveAddress}.");
             }
         }
 
@@ -40,7 +36,7 @@ Received {response.SlaveAddress}.");
         {
             if (buffer.Length < ByteSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(buffer), "The length of the buffer is less than the required byte size");
+                throw new ArgumentOutOfRangeException(nameof(buffer), "The length of the buffer is less than the required byte size.");
             }
 
             var bufferSpan = buffer.Span;

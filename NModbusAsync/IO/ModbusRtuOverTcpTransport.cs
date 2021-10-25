@@ -71,9 +71,7 @@ namespace NModbusAsync.IO
 
                 if (actualCrc != expectedCrc)
                 {
-                    throw new IOException($@"Received unexpected CRC.
-Expected: {expectedCrc}.
-Received. {actualCrc}.");
+                    throw new IOException($"Received unexpected CRC. Expected: {expectedCrc}. Received: {actualCrc}.");
                 }
 
                 var response = ModbusResponseFactory.CreateResponse<TResponse>(processedSequence.ToSpan());

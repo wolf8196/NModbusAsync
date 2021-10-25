@@ -16,9 +16,7 @@ namespace NModbusAsync.Messages.Abstractions
 
             if (NumberOfPoints != typedResponse.Data.Length)
             {
-                throw new IOException($@"Received unexpected number of registers.
-Expected: {NumberOfPoints}.
-Received: {typedResponse.Data.Length}.");
+                throw new IOException($"Received unexpected number of registers. Expected: {NumberOfPoints}. Received: {typedResponse.Data.Length}.");
             }
         }
     }

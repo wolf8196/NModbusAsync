@@ -49,7 +49,7 @@ namespace NModbusAsync.IO
             {
                 if (value < Timeout.Infinite)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), "The value needs to be either -1 (signifying an infinite timeout), 0 or a positive integer");
+                    throw new ArgumentOutOfRangeException(nameof(value), "The value needs to be either -1 (signifying an infinite timeout), 0 or a positive integer.");
                 }
 
                 waitToRetryMilliseconds = value;

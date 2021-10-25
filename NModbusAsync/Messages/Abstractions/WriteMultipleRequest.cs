@@ -22,9 +22,7 @@ namespace NModbusAsync.Messages.Abstractions
 
             if (NumberOfPoints != typedResponse.NumberOfPoints)
             {
-                throw new IOException($@"Received unexpected number of points.
-Expected: {NumberOfPoints}
-Received: {typedResponse.NumberOfPoints}.");
+                throw new IOException($"Received unexpected number of points. Expected: {NumberOfPoints}. Received: {typedResponse.NumberOfPoints}.");
             }
         }
 

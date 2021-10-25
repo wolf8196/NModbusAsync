@@ -83,9 +83,7 @@ namespace NModbusAsync.IO
 
             if (request.TransactionId != response.TransactionId)
             {
-                throw new IOException($@"Received unexpected transaction Id.
-Expected: {request.TransactionId}.
-Received: {response.TransactionId}.");
+                throw new IOException($"Received unexpected transaction Id. Expected: {request.TransactionId}. Received: {response.TransactionId}.");
             }
         }
     }

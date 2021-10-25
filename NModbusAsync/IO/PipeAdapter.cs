@@ -10,7 +10,7 @@ namespace NModbusAsync.IO
 {
     internal sealed class PipeAdapter<TResource> : IPipeResource<TResource>
     {
-        private const string TimeoutOutOfRangeExceptionMessage = "Timeout can be only be set to 'System.Threading.Timeout.Infinite' or a value > 0";
+        private const string TimeoutOutOfRangeExceptionMessage = "Timeout can be only be set to 'System.Threading.Timeout.Infinite' or a value > 0.";
 
         private readonly IStreamResource<TResource> streamResource;
         private readonly PipeWriter pipeWriter;

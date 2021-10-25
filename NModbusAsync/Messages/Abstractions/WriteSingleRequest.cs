@@ -24,9 +24,7 @@ namespace NModbusAsync.Messages.Abstractions
 
             if (Value != typedResponse.Value)
             {
-                throw new IOException($@"Received unexpected value.
-Expected: {Value}.
-Received: {typedResponse.Value}.");
+                throw new IOException($"Received unexpected value. Expected: {Value}. Received: {typedResponse.Value}.");
             }
         }
 

@@ -19,9 +19,7 @@ namespace NModbusAsync.Messages.Abstractions
 
             if (StartAddress != typedResponse.StartAddress)
             {
-                throw new IOException($@"Received unexpected start address.
-Expected: {StartAddress}
-Received: {typedResponse.StartAddress}.");
+                throw new IOException($"Received unexpected start address. Expected: {StartAddress}. Received: {typedResponse.StartAddress}.");
             }
         }
     }
