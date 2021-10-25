@@ -27,18 +27,16 @@ namespace NModbusAsync.IO
         protected override async Task WriteRequestAsync(IModbusRequest request, CancellationToken token = default)
         {
             var totalSize = SlaveAddressSize + CrcSize + request.ByteSize;
-            using (var memoryOwner = MemoryPool<byte>.Shared.Rent(totalSize))
-            {
-                var memory = memoryOwner.Memory;
+            using var memoryOwner = MemoryPool<byte>.Shared.Rent(totalSize);
+            var memory = memoryOwner.Memory;
 
-                memory.Span[0] = request.SlaveAddress;
-                request.WriteTo(memory.Slice(SlaveAddressSize, request.ByteSize));
+            memory.Span[0] = request.SlaveAddress;
+            request.WriteTo(memory.Slice(SlaveAddressSize, request.ByteSize));
 
-                ushort crc = crcCalculator.Calculate(memory.Slice(0, SlaveAddressSize + request.ByteSize));
-                NetCoreBitConverter.TryWriteBytes(memory.Slice(SlaveAddressSize + request.ByteSize, CrcSize).Span, crc);
+            ushort crc = crcCalculator.Calculate(memory.Slice(0, SlaveAddressSize + request.ByteSize));
+            BitConverter.TryWriteBytes(memory.Slice(SlaveAddressSize + request.ByteSize, CrcSize).Span, crc);
 
-                await PipeResource.WriteAsync(memory.Slice(0, totalSize), token).ConfigureAwait(false);
-            }
+            await PipeResource.WriteAsync(memory.Slice(0, totalSize), token).ConfigureAwait(false);
         }
 
         protected override async Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default)
@@ -67,7 +65,7 @@ namespace NModbusAsync.IO
                 processedSequence = buffer.Slice(0, frameTotalLength);
 
                 var expectedCrc = crcCalculator.Calculate(processedSequence.Slice(0, frameTotalLength - CrcSize).ToMemory());
-                var actualCrc = NetCoreBitConverter.ToUInt16(processedSequence.Slice(frameTotalLength - CrcSize, CrcSize).ToSpan());
+                var actualCrc = BitConverter.ToUInt16(processedSequence.Slice(frameTotalLength - CrcSize, CrcSize).ToSpan());
 
                 if (actualCrc != expectedCrc)
                 {

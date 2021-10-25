@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -22,20 +23,18 @@ namespace NModbusAsync.IO
 
         protected override async Task WriteRequestAsync(IModbusRequest request, CancellationToken token = default)
         {
-            using (var memoryOwner = MemoryPool<byte>.Shared.Rent(MbapHeaderSizeOnRequest + request.ByteSize))
-            {
-                var memory = memoryOwner.Memory;
+            using var memoryOwner = MemoryPool<byte>.Shared.Rent(MbapHeaderSizeOnRequest + request.ByteSize);
+            var memory = memoryOwner.Memory;
 
-                NetCoreBitConverter.TryWriteBytes(memory.Slice(0, 2).Span, IPAddress.HostToNetworkOrder((short)request.TransactionId));
-                memory.Span[2] = 0;
-                memory.Span[3] = 0;
-                NetCoreBitConverter.TryWriteBytes(memory.Slice(4, 2).Span, IPAddress.HostToNetworkOrder((short)(request.ByteSize + 1)));
-                memory.Span[6] = request.SlaveAddress;
+            BitConverter.TryWriteBytes(memory.Slice(0, 2).Span, IPAddress.HostToNetworkOrder((short)request.TransactionId));
+            memory.Span[2] = 0;
+            memory.Span[3] = 0;
+            BitConverter.TryWriteBytes(memory.Slice(4, 2).Span, IPAddress.HostToNetworkOrder((short)(request.ByteSize + 1)));
+            memory.Span[6] = request.SlaveAddress;
 
-                request.WriteTo(memory.Slice(MbapHeaderSizeOnRequest, request.ByteSize));
+            request.WriteTo(memory.Slice(MbapHeaderSizeOnRequest, request.ByteSize));
 
-                await PipeResource.WriteAsync(memory.Slice(0, MbapHeaderSizeOnRequest + request.ByteSize), token).ConfigureAwait(false);
-            }
+            await PipeResource.WriteAsync(memory.Slice(0, MbapHeaderSizeOnRequest + request.ByteSize), token).ConfigureAwait(false);
         }
 
         protected override async Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default)
@@ -48,7 +47,7 @@ namespace NModbusAsync.IO
                 buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
             }
 
-            var frameLength = (ushort)IPAddress.HostToNetworkOrder(NetCoreBitConverter.ToInt16(buffer.Slice(4, 2).ToSpan()));
+            var frameLength = (ushort)IPAddress.HostToNetworkOrder(BitConverter.ToInt16(buffer.Slice(4, 2).ToSpan()));
 
             while (buffer.Length < MbapHeaderSizeOnResponse + frameLength)
             {
@@ -61,7 +60,7 @@ namespace NModbusAsync.IO
             var response = ModbusResponseFactory.CreateResponse<TResponse>(
                 processedSequence.Slice(MbapHeaderSizeOnResponse, processedSequence.Length - MbapHeaderSizeOnResponse).ToSpan());
 
-            response.TransactionId = (ushort)IPAddress.NetworkToHostOrder(NetCoreBitConverter.ToInt16(buffer.Slice(0, 2).ToSpan()));
+            response.TransactionId = (ushort)IPAddress.NetworkToHostOrder(BitConverter.ToInt16(buffer.Slice(0, 2).ToSpan()));
 
             PipeResource.AdvanceTo(processedSequence.End);
 

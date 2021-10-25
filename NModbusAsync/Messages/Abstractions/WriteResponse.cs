@@ -14,7 +14,7 @@ namespace NModbusAsync.Messages.Abstractions
         {
             base.Initialize(frame);
 
-            StartAddress = (ushort)IPAddress.NetworkToHostOrder(NetCoreBitConverter.ToInt16(frame.Slice(2, 2)));
+            StartAddress = (ushort)IPAddress.NetworkToHostOrder(BitConverter.ToInt16(frame.Slice(2, 2)));
         }
     }
 }

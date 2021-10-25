@@ -19,7 +19,7 @@ namespace NModbusAsync.Utility
 
             if (completedTask.Status == TaskStatus.Canceled)
             {
-                throw new OperationCanceledException();
+                throw new OperationCanceledException(token);
             }
 
             return completedTask == task;

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
@@ -9,15 +9,6 @@
 
     <AssemblyOriginatorKeyFile>nmodbusasync_key.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Unit\TestHelper.cs" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <None Remove="Settings.StyleCop" />
-    <None Remove="StyleCop.Cache" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />

@@ -31,7 +31,7 @@ namespace NModbusAsync.Messages
 
             for (int i = 0; i < data.Length; i++)
             {
-                NetCoreBitConverter.TryWriteBytes(bufferSpan.Slice((i * 2) + 6, 2), IPAddress.HostToNetworkOrder((short)data[i]));
+                BitConverter.TryWriteBytes(bufferSpan.Slice((i * 2) + 6, 2), IPAddress.HostToNetworkOrder((short)data[i]));
             }
         }
     }

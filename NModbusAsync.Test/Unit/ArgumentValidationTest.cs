@@ -84,24 +84,24 @@ namespace NModbusAsync.Test.Unit
 
         [Fact]
         [Trait("Category", "Unit")]
-        public void NetCoreBitConverterToInt16ThrowsOnInvalidSpanSize()
+        public void BitConverterToInt16ThrowsOnInvalidSpanSize()
         {
             // Arrange
             var array = new byte[1];
 
             // Act/Assert
-            Assert.Throws<ArgumentOutOfRangeException>("value", () => NetCoreBitConverter.ToInt16(array));
+            Assert.Throws<ArgumentOutOfRangeException>("value", () => BitConverter.ToInt16(array));
         }
 
         [Fact]
         [Trait("Category", "Unit")]
-        public void NetCoreBitConverterToInt16ReturnsFalseOnInvalidSpanSize()
+        public void BitConverterToInt16ReturnsFalseOnInvalidSpanSize()
         {
             // Arrange
             var array = new byte[1];
 
             // Act/Assert
-            Assert.False(NetCoreBitConverter.TryWriteBytes(array, short.MaxValue));
+            Assert.False(BitConverter.TryWriteBytes(array, short.MaxValue));
         }
 
         [Theory]

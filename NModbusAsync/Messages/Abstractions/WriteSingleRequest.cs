@@ -34,8 +34,8 @@ namespace NModbusAsync.Messages.Abstractions
 
             var bufferSpan = buffer.Span;
 
-            NetCoreBitConverter.TryWriteBytes(bufferSpan.Slice(1, 2), IPAddress.HostToNetworkOrder((short)StartAddress));
-            NetCoreBitConverter.TryWriteBytes(bufferSpan.Slice(3, 2), IPAddress.HostToNetworkOrder((short)Value));
+            BitConverter.TryWriteBytes(bufferSpan.Slice(1, 2), IPAddress.HostToNetworkOrder((short)StartAddress));
+            BitConverter.TryWriteBytes(bufferSpan.Slice(3, 2), IPAddress.HostToNetworkOrder((short)Value));
         }
     }
 }

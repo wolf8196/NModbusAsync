@@ -12,7 +12,7 @@ namespace NModbusAsync.Messages.Abstractions
         {
             base.Initialize(frame);
 
-            NumberOfPoints = (ushort)IPAddress.NetworkToHostOrder(NetCoreBitConverter.ToInt16(frame.Slice(4, 2)));
+            NumberOfPoints = (ushort)IPAddress.NetworkToHostOrder(BitConverter.ToInt16(frame.Slice(4, 2)));
         }
     }
 }
