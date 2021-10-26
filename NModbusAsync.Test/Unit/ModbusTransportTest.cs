@@ -224,7 +224,7 @@ namespace NModbusAsync.Test.Unit
             target.SetupRetryReadResponse(request, response, true, false);
 
             // Act
-            var _ = await target.Object.SendAsync<WriteMultipleCoilsResponse>(request);
+            _ = await target.Object.SendAsync<WriteMultipleCoilsResponse>(request);
 
             // Assert
             target.Protected().As<IModbusTransportMock>()

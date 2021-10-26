@@ -71,103 +71,101 @@ namespace NModbusAsync.IO
 
             Logger.LogTrace("Sending modbus request. TransactionId: {TransactionId}, Request: {Request}.", request.TransactionId, request);
 
-            using (var currCallTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token, disposingTokenSource.Token))
-            {
-                token = currCallTokenSource.Token;
+            using var currCallTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token, disposingTokenSource.Token);
+            token = currCallTokenSource.Token;
 
-                IModbusResponse response = null;
-                do
+            IModbusResponse response = null;
+            do
+            {
+                try
                 {
+                    await semaphoreSlim.WaitAsync(token).ConfigureAwait(false);
                     try
                     {
-                        await semaphoreSlim.WaitAsync(token).ConfigureAwait(false);
-                        try
+                        await WriteRequestAsync(request, token).ConfigureAwait(false);
+
+                        bool readAgain;
+                        do
                         {
-                            await WriteRequestAsync(request, token).ConfigureAwait(false);
+                            readAgain = false;
+                            response = await ReadResponseAsync<TResponse>(token).ConfigureAwait(false);
 
-                            bool readAgain;
-                            do
+                            if (response is SlaveExceptionResponse exceptionResponse)
                             {
-                                readAgain = false;
-                                response = await ReadResponseAsync<TResponse>(token).ConfigureAwait(false);
+                                // if SlaveExceptionCode == ACKNOWLEDGE we retry reading the response without resubmitting request
+                                readAgain = exceptionResponse.SlaveExceptionCode == SlaveExceptionCode.Acknowledge;
 
-                                if (response is SlaveExceptionResponse exceptionResponse)
+                                if (readAgain)
                                 {
-                                    // if SlaveExceptionCode == ACKNOWLEDGE we retry reading the response without resubmitting request
-                                    readAgain = exceptionResponse.SlaveExceptionCode == SlaveExceptionCode.Acknowledge;
-
-                                    if (readAgain)
-                                    {
-                                        Logger.LogDebug("Received slave exception code 'Acknowledge' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and retrying to read response. Request: {Request}.", WaitToRetryMilliseconds, request);
-                                        await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
-                                    }
-                                    else
-                                    {
-                                        throw new SlaveException(exceptionResponse);
-                                    }
+                                    Logger.LogDebug("Received slave exception code 'Acknowledge' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and retrying to read response. Request: {Request}.", WaitToRetryMilliseconds, request);
+                                    await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
                                 }
-                                else if (RetryReadResponse(request, response))
+                                else
                                 {
-                                    readAgain = true;
+                                    throw new SlaveException(exceptionResponse);
                                 }
                             }
-                            while (readAgain);
-                        }
-                        finally
-                        {
-                            semaphoreSlim.Release();
-                        }
-
-                        Validate(request, response);
-                        success = true;
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        ThrowIfDisposed();
-                        throw; // else throw original ObjectDisposedException
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        ThrowIfDisposed();
-                        throw; // else throw original OperationCanceledException
-                    }
-                    catch (SlaveException se)
-                    {
-                        if (se.SlaveExceptionCode != SlaveExceptionCode.SlaveDeviceBusy || (SlaveBusyUsesRetryCount && attempt++ > Retries))
-                        {
-                            throw;
-                        }
-
-                        Logger.LogWarning("Received slave exception code 'SlaveDeviceBusy' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and resubmitting request. Request: {request}.", WaitToRetryMilliseconds, request);
-                        await DelayRetryWithExceptionHandling(token);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (ex is SocketException || ex.InnerException is SocketException)
-                        {
-                            Logger.LogError(ex, "Socket error occured while sending request. Request: {Request}.", request);
-                            throw;
-                        }
-                        else if (ex is FormatException || ex is IOException || ex is TimeoutException)
-                        {
-                            Logger.LogError(ex, "Error occured while sending request. {RetryLeft} retries remaining. Request: {Request}.", Retries - attempt + 1, request);
-                            if (attempt++ > Retries)
+                            else if (RetryReadResponse(request, response))
                             {
-                                throw;
+                                readAgain = true;
                             }
                         }
-                        else
+                        while (readAgain);
+                    }
+                    finally
+                    {
+                        semaphoreSlim.Release();
+                    }
+
+                    Validate(request, response);
+                    success = true;
+                }
+                catch (ObjectDisposedException)
+                {
+                    ThrowIfDisposed();
+                    throw; // else throw original ObjectDisposedException
+                }
+                catch (OperationCanceledException)
+                {
+                    ThrowIfDisposed();
+                    throw; // else throw original OperationCanceledException
+                }
+                catch (SlaveException se)
+                {
+                    if (se.SlaveExceptionCode != SlaveExceptionCode.SlaveDeviceBusy || (SlaveBusyUsesRetryCount && attempt++ > Retries))
+                    {
+                        throw;
+                    }
+
+                    Logger.LogWarning("Received slave exception code 'SlaveDeviceBusy' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and resubmitting request. Request: {request}.", WaitToRetryMilliseconds, request);
+                    await DelayRetryWithExceptionHandling(token).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is SocketException || ex.InnerException is SocketException)
+                    {
+                        Logger.LogError(ex, "Socket error occured while sending request. Request: {Request}.", request);
+                        throw;
+                    }
+                    else if (ex is FormatException || ex is IOException || ex is TimeoutException)
+                    {
+                        Logger.LogError(ex, "Error occured while sending request. {RetryLeft} retries remaining. Request: {Request}.", Retries - attempt + 1, request);
+                        if (attempt++ > Retries)
                         {
                             throw;
                         }
+                    }
+                    else
+                    {
+                        throw;
                     }
                 }
-                while (!success);
-
-                Logger.LogTrace("Returning modbus response. TransactionId: {TransactionId}, Response: {Response}.", response.TransactionId, response);
-
-                return (TResponse)response;
             }
+            while (!success);
+
+            Logger.LogTrace("Returning modbus response. TransactionId: {TransactionId}, Response: {Response}.", response.TransactionId, response);
+
+            return (TResponse)response;
         }
 
         public void Dispose()
@@ -194,7 +192,8 @@ namespace NModbusAsync.IO
 
         protected abstract Task WriteRequestAsync(IModbusRequest request, CancellationToken token = default);
 
-        protected abstract Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default) where TResponse : IModbusResponse, new();
+        protected abstract Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default)
+            where TResponse : IModbusResponse, new();
 
         protected abstract bool RetryReadResponse(IModbusRequest request, IModbusResponse response);
 

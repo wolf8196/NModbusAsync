@@ -5,7 +5,8 @@ namespace NModbusAsync.Messages
 {
     internal static class ModbusResponseFactory
     {
-        internal static IModbusResponse CreateResponse<TResponse>(ReadOnlySpan<byte> frame) where TResponse : IModbusResponse, new()
+        internal static IModbusResponse CreateResponse<TResponse>(ReadOnlySpan<byte> frame)
+            where TResponse : IModbusResponse, new()
         {
             byte functionCode = frame[1];
             IModbusResponse response;
@@ -22,7 +23,8 @@ namespace NModbusAsync.Messages
             return response;
         }
 
-        private static TResponse CreateResponseInternal<TResponse>(ReadOnlySpan<byte> frame) where TResponse : IModbusResponse, new()
+        private static TResponse CreateResponseInternal<TResponse>(ReadOnlySpan<byte> frame)
+            where TResponse : IModbusResponse, new()
         {
             var message = new TResponse();
             message.Initialize(frame);

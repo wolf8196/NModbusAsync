@@ -15,7 +15,7 @@ namespace NModbusAsync.Test.Integration
         }
 
         [Theory]
-        [MemberData((nameof(GetReadResults)))]
+        [MemberData(nameof(GetReadResults))]
         [Trait("Category", "Integration")]
         public async Task ReadSuccessfully(ushort startAddress, ushort numberOfPoints, ushort[] expected)
         {

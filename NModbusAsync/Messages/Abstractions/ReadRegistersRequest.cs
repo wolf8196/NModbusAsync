@@ -2,7 +2,8 @@
 
 namespace NModbusAsync.Messages.Abstractions
 {
-    internal abstract class ReadRegistersRequest<TResponse> : ReadRequest where TResponse : ReadRegistersResponse
+    internal abstract class ReadRegistersRequest<TResponse> : ReadRequest
+        where TResponse : ReadRegistersResponse
     {
         protected ReadRegistersRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
             : base(slaveAddress, functionCode, startAddress, numberOfPoints)

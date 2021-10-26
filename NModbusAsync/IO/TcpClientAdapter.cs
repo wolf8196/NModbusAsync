@@ -4,7 +4,8 @@ using NModbusAsync.IO.Abstractions;
 
 namespace NModbusAsync.IO
 {
-    internal sealed class TcpClientAdapter<TResource> : IStreamResource<TResource> where TResource : TcpClient
+    internal sealed class TcpClientAdapter<TResource> : IStreamResource<TResource>
+        where TResource : TcpClient
     {
         internal TcpClientAdapter(TResource tcpClient)
         {

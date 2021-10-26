@@ -20,6 +20,7 @@ namespace NModbusAsync
 
         IPipeResource PipeResource { get; }
 
-        Task<TResponse> SendAsync<TResponse>(IModbusRequest request, CancellationToken token = default) where TResponse : IModbusResponse, new();
+        Task<TResponse> SendAsync<TResponse>(IModbusRequest request, CancellationToken token = default)
+            where TResponse : IModbusResponse, new();
     }
 }

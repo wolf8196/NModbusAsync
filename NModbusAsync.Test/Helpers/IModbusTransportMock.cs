@@ -7,7 +7,8 @@ namespace NModbusAsync.Test.Helpers
     {
         Task WriteRequestAsync(IModbusRequest request, CancellationToken token = default);
 
-        Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default) where TResponse : IModbusResponse, new();
+        Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default)
+            where TResponse : IModbusResponse, new();
 
         bool RetryReadResponse(IModbusRequest request, IModbusResponse response);
 

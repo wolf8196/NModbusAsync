@@ -5,7 +5,8 @@ using NModbusAsync.Utility;
 
 namespace NModbusAsync.Messages.Abstractions
 {
-    internal abstract class WriteSingleRequest<TResponse> : WriteRequest<TResponse> where TResponse : WriteSingleResponse
+    internal abstract class WriteSingleRequest<TResponse> : WriteRequest<TResponse>
+        where TResponse : WriteSingleResponse
     {
         protected WriteSingleRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort value)
             : base(slaveAddress, functionCode, startAddress)

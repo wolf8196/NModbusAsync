@@ -27,7 +27,8 @@ namespace NModbusAsync.Test.Helpers
                 .Throws(ex);
         }
 
-        internal static void SetupReadResponseAsync<TResponse>(this Mock<ModbusTransport> mock, params IModbusResponse[] responses) where TResponse : IModbusResponse, new()
+        internal static void SetupReadResponseAsync<TResponse>(this Mock<ModbusTransport> mock, params IModbusResponse[] responses)
+            where TResponse : IModbusResponse, new()
         {
             if (responses.Length == 1)
             {

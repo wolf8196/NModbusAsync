@@ -17,7 +17,9 @@ namespace NModbusAsync.Test.Unit
             // Arrange/Act
             var waitResult = await Task.Run(() =>
             {
-                while (true) { }
+                while (true)
+                {
+                }
             }).WaitAsync(200);
 
             // Assert
@@ -66,7 +68,9 @@ namespace NModbusAsync.Test.Unit
             {
                 var waitResult = await Task.Run(() =>
                 {
-                    while (true) { }
+                    while (true)
+                    {
+                    }
                 }).WaitAsync(10000, cts.Token);
             });
         }

@@ -5,7 +5,8 @@ using NModbusAsync.Utility;
 
 namespace NModbusAsync.Messages.Abstractions
 {
-    internal abstract class WriteMultipleRequest<TResponse> : WriteRequest<TResponse> where TResponse : WriteMultipleResponse
+    internal abstract class WriteMultipleRequest<TResponse> : WriteRequest<TResponse>
+        where TResponse : WriteMultipleResponse
     {
         protected WriteMultipleRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
             : base(slaveAddress, functionCode, startAddress)

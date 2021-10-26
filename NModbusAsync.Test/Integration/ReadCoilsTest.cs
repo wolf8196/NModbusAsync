@@ -15,7 +15,7 @@ namespace NModbusAsync.Test.Integration
         }
 
         [Theory]
-        [MemberData((nameof(GetReadResults)))]
+        [MemberData(nameof(GetReadResults))]
         [Trait("Category", "Integration")]
         public async Task ReadsSuccessfully(ushort startAddress, ushort numberOfPoints, bool[] expected)
         {
@@ -33,14 +33,18 @@ namespace NModbusAsync.Test.Integration
                 { 0, 1, new bool[] { true } },
                 { 1, 1, new bool[] { false } },
                 { 6, 8, new bool[] { true, true, false, true, false, true, false, false } },
-                { 20, 2000, Enumerable.Repeat(true, 200)
+                {
+                    20,
+                    2000,
+                    Enumerable.Repeat(true, 200)
                     .Concat(Enumerable.Repeat(false, 100))
                     .Concat(Enumerable.Repeat(true, 500))
                     .Concat(Enumerable.Repeat(false, 300))
                     .Concat(Enumerable.Repeat(true, 200))
                     .Concat(Enumerable.Repeat(false, 150))
                     .Concat(Enumerable.Repeat(false, 250))
-                    .Concat(Enumerable.Repeat(true, 300)).ToArray() }
+                    .Concat(Enumerable.Repeat(true, 300)).ToArray()
+                }
             };
         }
     }

@@ -24,12 +24,14 @@ namespace NModbusAsync.Test.Integration
                         Target = new ModbusFactory().CreateTcpMaster(tcpClient);
                         break;
                     }
+
                 case RtuOverTpcMaster:
                     {
                         tcpClient.Connect("127.0.0.1", 503);
                         Target = new ModbusFactory().CreateRtuOverTcpMaster(tcpClient);
                         break;
                     }
+
                 default:
                     throw new NotImplementedException($"Master type is not implemented. Master type: {MasterType}");
             }

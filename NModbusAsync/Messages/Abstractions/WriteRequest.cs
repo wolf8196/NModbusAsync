@@ -2,7 +2,8 @@
 
 namespace NModbusAsync.Messages.Abstractions
 {
-    internal abstract class WriteRequest<TResponse> : ModbusRequest where TResponse : WriteResponse
+    internal abstract class WriteRequest<TResponse> : ModbusRequest
+        where TResponse : WriteResponse
     {
         protected WriteRequest(byte slaveAddress, byte functionCode, ushort startAddress)
             : base(slaveAddress, functionCode)

@@ -14,7 +14,7 @@ namespace NModbusAsync.Test.Integration
         }
 
         [Theory]
-        [MemberData((nameof(GetWriteData)))]
+        [MemberData(nameof(GetWriteData))]
         [Trait("Category", "Integration")]
         public async Task WritesSuccessfully(ushort startAddress, bool expected)
         {

@@ -21,12 +21,14 @@ namespace NModbusAsync
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public IModbusMaster CreateTcpMaster<TResource>(TResource tcpClient) where TResource : TcpClient
+        public IModbusMaster CreateTcpMaster<TResource>(TResource tcpClient)
+            where TResource : TcpClient
         {
             return CreateTcpMaster(tcpClient, logger);
         }
 
-        public IModbusMaster CreateTcpMaster<TResource>(TResource tcpClient, ILogger<IModbusMaster> logger) where TResource : TcpClient
+        public IModbusMaster CreateTcpMaster<TResource>(TResource tcpClient, ILogger<IModbusMaster> logger)
+            where TResource : TcpClient
         {
             if (tcpClient == null)
             {
@@ -46,12 +48,14 @@ namespace NModbusAsync
                     logger));
         }
 
-        public IModbusMaster CreateRtuOverTcpMaster<TResource>(TResource tcpClient) where TResource : TcpClient
+        public IModbusMaster CreateRtuOverTcpMaster<TResource>(TResource tcpClient)
+            where TResource : TcpClient
         {
             return CreateRtuOverTcpMaster(tcpClient, logger);
         }
 
-        public IModbusMaster CreateRtuOverTcpMaster<TResource>(TResource tcpClient, ILogger<IModbusMaster> logger) where TResource : TcpClient
+        public IModbusMaster CreateRtuOverTcpMaster<TResource>(TResource tcpClient, ILogger<IModbusMaster> logger)
+            where TResource : TcpClient
         {
             if (tcpClient == null)
             {

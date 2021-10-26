@@ -18,6 +18,7 @@ namespace NModbusAsync.Test.Unit
         [InlineData(-1)]
         [InlineData(250)]
         [Trait("Category", "Unit")]
+        [SuppressMessage("Style", "IDE0017:Simplify object initialization", Justification = "To better separate Act part")]
         public void SetsReadTimeoutSuccessfully(int timeout)
         {
             // Arrange
@@ -36,6 +37,7 @@ namespace NModbusAsync.Test.Unit
         [InlineData(-1)]
         [InlineData(250)]
         [Trait("Category", "Unit")]
+        [SuppressMessage("Style", "IDE0017:Simplify object initialization", Justification = "To better separate Act part")]
         public void SetsWriteTimeoutSuccessfully(int timeout)
         {
             // Arrange
@@ -110,8 +112,6 @@ namespace NModbusAsync.Test.Unit
 
             public override bool CanWrite => true;
 
-            #region Not implemented
-
             public override bool CanRead => throw new System.NotImplementedException();
 
             public override bool CanSeek => throw new System.NotImplementedException();
@@ -125,8 +125,6 @@ namespace NModbusAsync.Test.Unit
             public override long Seek(long offset, SeekOrigin origin) => throw new System.NotImplementedException();
 
             public override void SetLength(long value) => throw new System.NotImplementedException();
-
-            #endregion Not implemented
 
             public override void Write(byte[] buffer, int offset, int count)
             {
