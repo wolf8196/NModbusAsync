@@ -15,6 +15,7 @@ namespace NModbusAsync.Test.Unit
     public class PipeAdapterTest
     {
         [Fact]
+        [Trait("Category", "Unit")]
         public async Task ReadsOnceIfEnoughData()
         {
             // Arrange
@@ -32,6 +33,7 @@ namespace NModbusAsync.Test.Unit
         }
 
         [Fact]
+        [Trait("Category", "Unit")]
         public async Task ReadsUntilEnoughData()
         {
             // Arrange
