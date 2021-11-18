@@ -14,11 +14,11 @@ using Xunit;
 namespace NModbusAsync.Test.Unit
 {
     [ExcludeFromCodeCoverage]
-    public class ModbusIpTransportTest
+    public class ModbusTcpTransportTest
     {
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task ReadsPipeUntilEnoughtData()
+        public async Task ReadsPipeOnceIfEnoughtData()
         {
             // Arrange
             var request = new ReadHoldingRegistersRequest(1, 1, 1);
@@ -26,13 +26,7 @@ namespace NModbusAsync.Test.Unit
             var responseSequence = new ReadOnlySequence<byte>(response.AsMemory());
             var pipeAdapterMock = new Mock<IPipeResource>();
             pipeAdapterMock.Setup(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReadOnlySequence<byte>(response.AsMemory(0, 1)))
-                .ReturnsAsync(new ReadOnlySequence<byte>(response.AsMemory(0, 3)))
-                .ReturnsAsync(new ReadOnlySequence<byte>(response.AsMemory(0, 5)))
-                .ReturnsAsync(new ReadOnlySequence<byte>(response.AsMemory(0, 7)))
-                .ReturnsAsync(new ReadOnlySequence<byte>(response.AsMemory(0, 9)))
-                .ReturnsAsync(responseSequence);
+            pipeAdapterMock.Setup(x => x.ReadAsync(6, It.IsAny<CancellationToken>())).ReturnsAsync(responseSequence);
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
             transactionIdProviderMock.Setup(x => x.NewId()).Returns(1);
 
@@ -43,9 +37,36 @@ namespace NModbusAsync.Test.Unit
 
             // Assert
             pipeAdapterMock.Verify(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Once());
-            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<CancellationToken>()), Times.Exactly(6));
-            pipeAdapterMock.Verify(x => x.AdvanceTo(responseSequence.Start), Times.Exactly(5));
-            pipeAdapterMock.Verify(x => x.AdvanceTo(responseSequence.End), Times.Once());
+            pipeAdapterMock.Verify(x => x.ReadAsync(6, It.IsAny<CancellationToken>()), Times.Once());
+            pipeAdapterMock.Verify(x => x.MarkConsumed(responseSequence), Times.Once());
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task ReadsPipeAgainIfNotEnoughtData()
+        {
+            // Arrange
+            var request = new ReadHoldingRegistersRequest(1, 1, 1);
+            var response = new byte[] { 0, 1, 0, 0, 0, 5, 1, 3, 2, 0, 0 };
+            var responseSequence = new ReadOnlySequence<byte>(response.AsMemory());
+            var pipeAdapterMock = new Mock<IPipeResource>();
+            pipeAdapterMock.Setup(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            pipeAdapterMock.Setup(x => x.ReadAsync(6, It.IsAny<CancellationToken>())).ReturnsAsync(responseSequence.Slice(0, 6));
+            pipeAdapterMock.Setup(x => x.ReadAsync(11, It.IsAny<CancellationToken>())).ReturnsAsync(responseSequence);
+            var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
+            transactionIdProviderMock.Setup(x => x.NewId()).Returns(1);
+
+            var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>());
+
+            // Act
+            var actual = await target.SendAsync<ReadHoldingRegistersResponse>(request, It.IsAny<CancellationToken>());
+
+            // Assert
+            pipeAdapterMock.Verify(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Once());
+            pipeAdapterMock.Verify(x => x.ReadAsync(6, It.IsAny<CancellationToken>()), Times.Once());
+            pipeAdapterMock.Verify(x => x.ReadAsync(6, It.IsAny<CancellationToken>()), Times.Once());
+            pipeAdapterMock.Verify(x => x.MarkExamined(responseSequence.Slice(0, 6)), Times.Once());
+            pipeAdapterMock.Verify(x => x.MarkConsumed(responseSequence), Times.Once());
         }
 
         [Fact]
@@ -58,7 +79,7 @@ namespace NModbusAsync.Test.Unit
             var newResponse = new ReadOnlySequence<byte>(new byte[] { 0, 2, 0, 0, 0, 5, 1, 3, 2, 0, 0 }.AsMemory());
             var pipeAdapterMock = new Mock<IPipeResource>();
             pipeAdapterMock.Setup(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<CancellationToken>()))
+            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(oldResponse)
                 .ReturnsAsync(oldResponse)
                 .ReturnsAsync(newResponse);
@@ -74,7 +95,7 @@ namespace NModbusAsync.Test.Unit
 
             // Assert
             pipeAdapterMock.Verify(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
-            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<CancellationToken>()), Times.Exactly(3));
+            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
         }
 
         [Fact]
@@ -87,7 +108,7 @@ namespace NModbusAsync.Test.Unit
             var newResponse = new ReadOnlySequence<byte>(new byte[] { 0, 2, 0, 0, 0, 5, 1, 3, 2, 0, 0 }.AsMemory());
             var pipeAdapterMock = new Mock<IPipeResource>();
             pipeAdapterMock.Setup(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<CancellationToken>()))
+            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(oldResponse)
                 .ReturnsAsync(oldResponse)
                 .ReturnsAsync(oldResponse)
@@ -104,7 +125,7 @@ namespace NModbusAsync.Test.Unit
 
             // Assert
             pipeAdapterMock.Verify(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
-            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<CancellationToken>()), Times.Exactly(3));
+            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
         }
 
         [Fact]
@@ -117,7 +138,7 @@ namespace NModbusAsync.Test.Unit
             var newResponse = new ReadOnlySequence<byte>(new byte[] { 0, 5, 0, 0, 0, 5, 1, 3, 2, 0, 0 }.AsMemory());
             var pipeAdapterMock = new Mock<IPipeResource>();
             pipeAdapterMock.Setup(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<CancellationToken>()))
+            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(oldResponse)
                 .ReturnsAsync(newResponse);
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
@@ -133,7 +154,7 @@ namespace NModbusAsync.Test.Unit
 
             // Assert
             pipeAdapterMock.Verify(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Once());
-            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
         [Fact]
@@ -146,7 +167,7 @@ namespace NModbusAsync.Test.Unit
             var newResponse = new ReadOnlySequence<byte>(new byte[] { 0, 5, 0, 0, 0, 5, 1, 3, 2, 0, 0 }.AsMemory());
             var pipeAdapterMock = new Mock<IPipeResource>();
             pipeAdapterMock.Setup(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<CancellationToken>()))
+            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(oldResponse)
                 .ReturnsAsync(newResponse);
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
@@ -162,7 +183,7 @@ namespace NModbusAsync.Test.Unit
 
             // Assert
             pipeAdapterMock.Verify(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Once());
-            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<CancellationToken>()), Times.Once());
+            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once());
         }
 
         [Fact]
@@ -175,7 +196,7 @@ namespace NModbusAsync.Test.Unit
             var newResponse = new ReadOnlySequence<byte>(new byte[] { 0, 5, 0, 0, 0, 5, 1, 3, 2, 0, 0 }.AsMemory());
             var pipeAdapterMock = new Mock<IPipeResource>();
             pipeAdapterMock.Setup(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<CancellationToken>()))
+            pipeAdapterMock.SetupSequence(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(oldResponse)
                 .ReturnsAsync(newResponse);
             var transactionIdProviderMock = new Mock<ITransactionIdProvider>();
@@ -191,7 +212,7 @@ namespace NModbusAsync.Test.Unit
 
             // Assert
             pipeAdapterMock.Verify(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()), Times.Once());
-            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<CancellationToken>()), Times.Once());
+            pipeAdapterMock.Verify(x => x.ReadAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once());
         }
     }
 }

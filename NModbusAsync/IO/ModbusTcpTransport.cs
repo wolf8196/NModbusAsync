@@ -39,30 +39,26 @@ namespace NModbusAsync.IO
 
         protected override async Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default)
         {
-            var buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
+            var buffer = await PipeResource.ReadAsync(MbapHeaderSizeOnResponse, token).ConfigureAwait(false);
 
-            while (buffer.Length < MbapHeaderSizeOnResponse)
+            var frameDataLength = (ushort)IPAddress.HostToNetworkOrder(BitConverter.ToInt16(buffer.Slice(4, 2).ToSpan()));
+            var totalLength = MbapHeaderSizeOnResponse + frameDataLength;
+
+            if (buffer.Length < totalLength)
             {
-                PipeResource.AdvanceTo(buffer.Start);
-                buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
+                PipeResource.MarkExamined(buffer);
+                buffer = await PipeResource.ReadAsync(totalLength, token).ConfigureAwait(false);
             }
 
-            var frameLength = (ushort)IPAddress.HostToNetworkOrder(BitConverter.ToInt16(buffer.Slice(4, 2).ToSpan()));
-
-            while (buffer.Length < MbapHeaderSizeOnResponse + frameLength)
-            {
-                PipeResource.AdvanceTo(buffer.Start);
-                buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
-            }
-
-            var processedSequence = buffer.Slice(0, MbapHeaderSizeOnResponse + frameLength);
+            var processedSequence = buffer.Slice(0, MbapHeaderSizeOnResponse + frameDataLength);
 
             var response = ModbusResponseFactory.CreateResponse<TResponse>(
-                processedSequence.Slice(MbapHeaderSizeOnResponse, processedSequence.Length - MbapHeaderSizeOnResponse).ToSpan());
+                processedSequence
+                    .Slice(MbapHeaderSizeOnResponse, processedSequence.Length - MbapHeaderSizeOnResponse)
+                    .ToSpan());
 
-            response.TransactionId = (ushort)IPAddress.NetworkToHostOrder(BitConverter.ToInt16(buffer.Slice(0, 2).ToSpan()));
-
-            PipeResource.AdvanceTo(processedSequence.End);
+            response.TransactionId = (ushort)IPAddress.NetworkToHostOrder(BitConverter.ToInt16(processedSequence.Slice(0, 2).ToSpan()));
+            PipeResource.MarkConsumed(processedSequence);
 
             return response;
         }

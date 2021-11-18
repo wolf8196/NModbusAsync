@@ -39,11 +39,7 @@ namespace NModbusAsync.IO
 
             set
             {
-                if (value <= 0 && value != Timeout.Infinite)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), TimeoutOutOfRangeExceptionMessage);
-                }
-
+                ValidateTimeout(value);
                 readTimeout = value;
             }
         }
@@ -57,11 +53,7 @@ namespace NModbusAsync.IO
 
             set
             {
-                if (value <= 0 && value != Timeout.Infinite)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), TimeoutOutOfRangeExceptionMessage);
-                }
-
+                ValidateTimeout(value);
                 writeTimeout = value;
             }
         }
@@ -70,7 +62,7 @@ namespace NModbusAsync.IO
         {
             var writeTask = pipeWriter.WriteAsync(buffer, token);
 
-            if (!await writeTask.AsTask().WaitAsync(WriteTimeout, token).ConfigureAwait(false))
+            if (!writeTask.IsCompleted && !await writeTask.AsTask().WaitAsync(WriteTimeout, token).ConfigureAwait(false))
             {
                 throw new TimeoutException("Failed to write to the transport connection in specified period of time.");
             }
@@ -80,7 +72,7 @@ namespace NModbusAsync.IO
         {
             var readTask = pipeReader.ReadAsync(token);
 
-            if (!await readTask.AsTask().WaitAsync(ReadTimeout, token).ConfigureAwait(false))
+            if (!readTask.IsCompleted && !await readTask.AsTask().WaitAsync(ReadTimeout, token).ConfigureAwait(false))
             {
                 throw new TimeoutException("Failed to read from the transport connection in specified period of time.");
             }
@@ -88,9 +80,27 @@ namespace NModbusAsync.IO
             return readTask.Result.Buffer;
         }
 
-        public void AdvanceTo(SequencePosition consumed)
+        public async Task<ReadOnlySequence<byte>> ReadAsync(int count, CancellationToken token)
         {
-            pipeReader.AdvanceTo(consumed);
+            var buffer = ReadOnlySequence<byte>.Empty;
+
+            while (buffer.Length < count)
+            {
+                buffer = await ReadAsync(token).ConfigureAwait(false);
+                MarkExamined(buffer);
+            }
+
+            return buffer;
+        }
+
+        public void MarkConsumed(ReadOnlySequence<byte> buffer)
+        {
+            pipeReader.AdvanceTo(buffer.End, buffer.End);
+        }
+
+        public void MarkExamined(ReadOnlySequence<byte> buffer)
+        {
+            pipeReader.AdvanceTo(buffer.Start, buffer.End);
         }
 
         public void Dispose()
@@ -98,6 +108,14 @@ namespace NModbusAsync.IO
             streamResource.Dispose();
             pipeWriter.Complete(new Exception());
             pipeReader.Complete(new Exception());
+        }
+
+        private static void ValidateTimeout(int value)
+        {
+            if (value <= 0 && value != Timeout.Infinite)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), TimeoutOutOfRangeExceptionMessage);
+            }
         }
     }
 }

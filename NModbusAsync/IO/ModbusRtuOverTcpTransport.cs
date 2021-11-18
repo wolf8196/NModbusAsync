@@ -41,45 +41,33 @@ namespace NModbusAsync.IO
 
         protected override async Task<IModbusResponse> ReadResponseAsync<TResponse>(CancellationToken token = default)
         {
-            ReadOnlySequence<byte> processedSequence = ReadOnlySequence<byte>.Empty;
-            try
+            var buffer = await PipeResource.ReadAsync(ResponseFrameStartSize, token).ConfigureAwait(false);
+            var lengthSequence = buffer.Slice(0, ResponseFrameStartSize);
+
+            var frameDataLength = GetResponseDataSize(lengthSequence.ToSpan());
+            var totalLength = ResponseFrameStartSize + frameDataLength + CrcSize;
+
+            if (buffer.Length < totalLength)
             {
-                var buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
-                processedSequence = buffer;
-
-                while (buffer.Length < ResponseFrameStartSize)
-                {
-                    PipeResource.AdvanceTo(buffer.Start);
-                    buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
-                }
-
-                var frameDataLength = GetResponseDataSize(buffer.Slice(0, ResponseFrameStartSize).ToSpan());
-                var frameTotalLength = ResponseFrameStartSize + frameDataLength + CrcSize;
-
-                while (buffer.Length < frameTotalLength)
-                {
-                    PipeResource.AdvanceTo(buffer.Start);
-                    buffer = await PipeResource.ReadAsync(token).ConfigureAwait(false);
-                }
-
-                processedSequence = buffer.Slice(0, frameTotalLength);
-
-                var expectedCrc = crcCalculator.Calculate(processedSequence.Slice(0, frameTotalLength - CrcSize).ToMemory());
-                var actualCrc = BitConverter.ToUInt16(processedSequence.Slice(frameTotalLength - CrcSize, CrcSize).ToSpan());
-
-                if (actualCrc != expectedCrc)
-                {
-                    throw new IOException($"Received unexpected CRC. Expected: {expectedCrc}. Received: {actualCrc}.");
-                }
-
-                var response = ModbusResponseFactory.CreateResponse<TResponse>(processedSequence.ToSpan());
-
-                return response;
+                PipeResource.MarkExamined(lengthSequence);
+                buffer = await PipeResource.ReadAsync(totalLength, token).ConfigureAwait(false);
             }
-            finally
+
+            var processedSequence = buffer.Slice(0, totalLength);
+
+            var expectedCrc = crcCalculator.Calculate(processedSequence.Slice(0, totalLength - CrcSize).ToMemory());
+            var actualCrc = BitConverter.ToUInt16(processedSequence.Slice(totalLength - CrcSize, CrcSize).ToSpan());
+
+            if (actualCrc != expectedCrc)
             {
-                PipeResource.AdvanceTo(processedSequence.End);
+                PipeResource.MarkConsumed(processedSequence);
+                throw new IOException($"Received unexpected CRC. Expected: {expectedCrc}. Received: {actualCrc}.");
             }
+
+            var response = ModbusResponseFactory.CreateResponse<TResponse>(processedSequence.ToSpan());
+            PipeResource.MarkConsumed(processedSequence);
+
+            return response;
         }
 
         protected override bool RetryReadResponse(IModbusRequest request, IModbusResponse response)
@@ -92,7 +80,7 @@ namespace NModbusAsync.IO
             request.Validate(response);
         }
 
-        private int GetResponseDataSize(ReadOnlySpan<byte> frameStart)
+        private static int GetResponseDataSize(ReadOnlySpan<byte> frameStart)
         {
             var functionCode = frameStart[1];
 

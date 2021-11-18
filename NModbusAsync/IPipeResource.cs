@@ -15,6 +15,10 @@ namespace NModbusAsync
 
         Task<ReadOnlySequence<byte>> ReadAsync(CancellationToken token);
 
-        void AdvanceTo(SequencePosition consumed);
+        Task<ReadOnlySequence<byte>> ReadAsync(int count, CancellationToken token);
+
+        void MarkConsumed(ReadOnlySequence<byte> buffer);
+
+        void MarkExamined(ReadOnlySequence<byte> buffer);
     }
 }

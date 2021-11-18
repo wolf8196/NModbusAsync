@@ -14,6 +14,45 @@ namespace NModbusAsync.Test.Unit
     [ExcludeFromCodeCoverage]
     public class PipeAdapterTest
     {
+        [Fact]
+        public async Task ReadsOnceIfEnoughData()
+        {
+            // Arrange
+            var streamMock = new Mock<Stream> { CallBase = false };
+            streamMock.Setup(x => x.ReadAsync(It.IsAny<Memory<byte>>(), It.IsAny<CancellationToken>())).ReturnsAsync(10);
+            var streamResourceMock = new Mock<IStreamResource<TcpClient>>();
+            streamResourceMock.Setup(x => x.GetStream()).Returns(streamMock.Object);
+            var pipeAdapter = new PipeAdapter<TcpClient>(streamResourceMock.Object);
+
+            // Act
+            var actual = await pipeAdapter.ReadAsync(10, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(10, actual.Length);
+        }
+
+        [Fact]
+        public async Task ReadsUntilEnoughData()
+        {
+            // Arrange
+            var streamMock = new Mock<Stream> { CallBase = false };
+            streamMock
+                .SetupSequence(x => x.ReadAsync(It.IsAny<Memory<byte>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(3)
+                .ReturnsAsync(3)
+                .ReturnsAsync(4);
+
+            var streamResourceMock = new Mock<IStreamResource<TcpClient>>();
+            streamResourceMock.Setup(x => x.GetStream()).Returns(streamMock.Object);
+            var pipeAdapter = new PipeAdapter<TcpClient>(streamResourceMock.Object);
+
+            // Act
+            var actual = await pipeAdapter.ReadAsync(10, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(10, actual.Length);
+        }
+
         [Theory]
         [InlineData(-1)]
         [InlineData(250)]
@@ -91,12 +130,13 @@ namespace NModbusAsync.Test.Unit
         public async Task TimesOutOnWriteAsync()
         {
             // Arrange
-            var streamMock = new StreamMock
-            {
-                WriteTimeout = 1000
-            };
+            var streamMock = new Mock<Stream>() { CallBase = false };
+            streamMock
+                .Setup(x => x.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+                .Returns(new ValueTask(Task.Delay(1000)));
+
             var streamResourceMock = new Mock<IStreamResource<TcpClient>>();
-            streamResourceMock.Setup(x => x.GetStream()).Returns(streamMock);
+            streamResourceMock.Setup(x => x.GetStream()).Returns(streamMock.Object);
             var pipeAdapter = new PipeAdapter<TcpClient>(streamResourceMock.Object)
             {
                 WriteTimeout = 500
@@ -106,34 +146,29 @@ namespace NModbusAsync.Test.Unit
             await Assert.ThrowsAsync<TimeoutException>(() => pipeAdapter.WriteAsync(new byte[] { 1, 2, 3 }, CancellationToken.None));
         }
 
-        private class StreamMock : Stream
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task TimesOutOnReadAsync()
         {
-            public override int WriteTimeout { get; set; }
+            // Arrange
+            var streamMock = new Mock<Stream>() { CallBase = false };
+            streamMock
+                .Setup(x => x.ReadAsync(It.IsAny<Memory<byte>>(), It.IsAny<CancellationToken>()))
+                .Returns(async () =>
+                {
+                    await Task.Delay(1000);
+                    return default;
+                });
 
-            public override bool CanWrite => true;
-
-            public override bool CanRead => throw new System.NotImplementedException();
-
-            public override bool CanSeek => throw new System.NotImplementedException();
-
-            public override long Length => throw new System.NotImplementedException();
-
-            public override long Position { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-
-            public override int Read(byte[] buffer, int offset, int count) => throw new System.NotImplementedException();
-
-            public override long Seek(long offset, SeekOrigin origin) => throw new System.NotImplementedException();
-
-            public override void SetLength(long value) => throw new System.NotImplementedException();
-
-            public override void Write(byte[] buffer, int offset, int count)
+            var streamResourceMock = new Mock<IStreamResource<TcpClient>>();
+            streamResourceMock.Setup(x => x.GetStream()).Returns(streamMock.Object);
+            var pipeAdapter = new PipeAdapter<TcpClient>(streamResourceMock.Object)
             {
-                Thread.Sleep(WriteTimeout);
-            }
+                ReadTimeout = 500
+            };
 
-            public override void Flush()
-            {
-            }
+            // Act/Assert
+            await Assert.ThrowsAsync<TimeoutException>(() => pipeAdapter.ReadAsync(10, CancellationToken.None));
         }
     }
 }
