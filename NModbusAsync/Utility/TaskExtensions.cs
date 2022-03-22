@@ -8,9 +8,14 @@ namespace NModbusAsync.Utility
     {
         internal static async Task<bool> WaitAsync(this Task task, int milliseconds, CancellationToken token = default)
         {
-            var timeoutTask = Task.Delay(milliseconds, token);
+            Task completedTask;
 
-            var completedTask = await Task.WhenAny(task, timeoutTask).ConfigureAwait(false);
+            using (var cts = CancellationTokenSource.CreateLinkedTokenSource(token))
+            {
+                var timeoutTask = Task.Delay(milliseconds, cts.Token);
+                completedTask = await Task.WhenAny(task, timeoutTask).ConfigureAwait(false);
+                cts.Cancel();
+            }
 
             if (completedTask.Status == TaskStatus.Faulted)
             {
