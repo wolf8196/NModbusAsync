@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging.Abstractions;
+using NModbusAsync.Test.Helpers;
 
 namespace NModbusAsync.Test.Integration
 {
@@ -21,14 +23,14 @@ namespace NModbusAsync.Test.Integration
             {
                 case TcpMaster:
                     {
-                        tcpClient.Connect("127.0.0.1", 502);
+                        tcpClient.Connect(IPAddress.Loopback, 502);
                         Target = new ModbusFactory(NullLogger<IModbusMaster>.Instance).CreateTcpMaster(tcpClient);
                         break;
                     }
 
                 case RtuOverTpcMaster:
                     {
-                        tcpClient.Connect("127.0.0.1", 503);
+                        tcpClient.Connect(IPAddress.Loopback, 503);
                         Target = new ModbusFactory(NullLogger<IModbusMaster>.Instance).CreateRtuOverTcpMaster(tcpClient);
                         break;
                     }

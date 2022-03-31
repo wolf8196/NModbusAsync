@@ -30,6 +30,7 @@ namespace NModbusAsync.Test.Unit
 
             // Assert
             Assert.Equal(10, actual.Length);
+            streamMock.Verify(x => x.ReadAsync(It.IsAny<Memory<byte>>(), It.IsAny<CancellationToken>()), Times.Once());
         }
 
         [Fact]
@@ -53,6 +54,7 @@ namespace NModbusAsync.Test.Unit
 
             // Assert
             Assert.Equal(10, actual.Length);
+            streamMock.Verify(x => x.ReadAsync(It.IsAny<Memory<byte>>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
         }
 
         [Theory]
@@ -171,6 +173,52 @@ namespace NModbusAsync.Test.Unit
 
             // Act/Assert
             await Assert.ThrowsAsync<TimeoutException>(() => pipeAdapter.ReadAsync(10, CancellationToken.None));
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task ThrowsIfCompletedBeforeEnoughData()
+        {
+            // Arrange
+            var streamMock = new Mock<Stream> { CallBase = false };
+            streamMock
+                .SetupSequence(x => x.ReadAsync(It.IsAny<Memory<byte>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(3)
+                .ReturnsAsync(3)
+                .ReturnsAsync(0);
+            var streamResourceMock = new Mock<IStreamResource<TcpClient>>();
+            streamResourceMock.Setup(x => x.GetStream()).Returns(streamMock.Object);
+            var pipeAdapter = new PipeAdapter<TcpClient>(streamResourceMock.Object);
+
+            // Act / Assert
+            await Assert.ThrowsAsync<PipeReaderCompleteException>(() => pipeAdapter.ReadAsync(10, CancellationToken.None));
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task ThrowsIfCancelledByTokenBeforeEnoughData()
+        {
+            // Arrange
+            using var cts = new CancellationTokenSource();
+            var streamMock = new Mock<Stream> { CallBase = false };
+            streamMock
+                .SetupSequence(x => x.ReadAsync(It.IsAny<Memory<byte>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(3)
+                .ReturnsAsync(3)
+                .ReturnsAsync(() =>
+                {
+                    cts.Cancel();
+                    cts.Token.ThrowIfCancellationRequested();
+                    return 0;
+                })
+                .ReturnsAsync(1);
+            var streamResourceMock = new Mock<IStreamResource<TcpClient>>();
+            streamResourceMock.Setup(x => x.GetStream()).Returns(streamMock.Object);
+            var pipeAdapter = new PipeAdapter<TcpClient>(streamResourceMock.Object);
+
+            // Act / Assert
+            var actual = await Assert.ThrowsAsync<OperationCanceledException>(() => pipeAdapter.ReadAsync(10, cts.Token));
+            Assert.Equal(cts.Token, actual.CancellationToken);
         }
     }
 }

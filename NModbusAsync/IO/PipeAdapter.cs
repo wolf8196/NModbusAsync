@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.IO.Pipelines;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NModbusAsync.IO.Abstractions;
@@ -68,29 +69,27 @@ namespace NModbusAsync.IO
             }
         }
 
-        public async Task<ReadOnlySequence<byte>> ReadAsync(CancellationToken token)
-        {
-            var readTask = pipeReader.ReadAsync(token);
-
-            if (!readTask.IsCompleted && !await readTask.AsTask().WaitAsync(ReadTimeout, token).ConfigureAwait(false))
-            {
-                throw new TimeoutException("Failed to read from the transport connection in specified period of time.");
-            }
-
-            return readTask.Result.Buffer;
-        }
-
         public async Task<ReadOnlySequence<byte>> ReadAsync(int count, CancellationToken token)
         {
-            var buffer = ReadOnlySequence<byte>.Empty;
-
-            while (buffer.Length < count)
+            while (true)
             {
-                buffer = await ReadAsync(token).ConfigureAwait(false);
-                MarkExamined(buffer);
-            }
+                token.ThrowIfCancellationRequested();
 
-            return buffer;
+                var readResult = await ReadAsync(token).ConfigureAwait(false);
+
+                if (readResult.Buffer.Length < count)
+                {
+                    if (readResult.IsCompleted)
+                    {
+                        throw new PipeReaderCompleteException();
+                    }
+
+                    MarkExamined(readResult.Buffer);
+                    continue;
+                }
+
+                return readResult.Buffer;
+            }
         }
 
         public void MarkConsumed(ReadOnlySequence<byte> buffer)
@@ -116,6 +115,18 @@ namespace NModbusAsync.IO
             {
                 throw new ArgumentOutOfRangeException(nameof(value), TimeoutOutOfRangeExceptionMessage);
             }
+        }
+
+        private async Task<ReadResult> ReadAsync(CancellationToken token)
+        {
+            var readTask = pipeReader.ReadAsync(token);
+
+            if (!readTask.IsCompleted && !await readTask.AsTask().WaitAsync(ReadTimeout, token).ConfigureAwait(false))
+            {
+                throw new TimeoutException("Failed to read from the transport connection in specified period of time.");
+            }
+
+            return readTask.Result;
         }
     }
 }
