@@ -123,10 +123,11 @@ namespace NModbusAsync.IO
 
             if (!readTask.IsCompleted && !await readTask.AsTask().WaitAsync(ReadTimeout, token).ConfigureAwait(false))
             {
+                pipeReader.CancelPendingRead();
                 throw new TimeoutException("Failed to read from the transport connection in specified period of time.");
             }
 
-            return readTask.Result;
+            return await readTask;
         }
     }
 }
