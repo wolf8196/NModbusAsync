@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+  <PropertyGroup><TargetFramework>netstandard2.1</TargetFramework>
     <Description>NModbusAsync is a striped to the bone version of NModbus library.
 The only thing that left is Modbus over TCP and Modbus RTU over TPC masters.
 The main difference and advantage of NModbusAsync is that all operations now utilize only asynchronous I/O.</Description>
@@ -11,8 +10,9 @@ The main difference and advantage of NModbusAsync is that all operations now uti
     <PackageTags>modbus nmodbus tcp master async io</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Copyright>Copyright (c) 2019 Roman Vovk</Copyright>
-    <Version>2.1.3</Version>
+    <Version>3.0.0-preview1</Version>
     <Authors>Roman Vovk</Authors>
+    <PackageReadmeFile>./README.md</PackageReadmeFile>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -50,6 +50,7 @@ The main difference and advantage of NModbusAsync is that all operations now uti
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
