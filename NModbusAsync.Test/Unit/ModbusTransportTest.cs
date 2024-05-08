@@ -271,7 +271,7 @@ namespace NModbusAsync.Test.Unit
 
         [Fact]
         [Trait("Category", "Unit")]
-        public void DisposesInThreadSafeManner()
+        public async Task DisposesInThreadSafeMannerAsync()
         {
             // Arrange
             var pipeResource = new Mock<IPipeResource>();
@@ -280,7 +280,7 @@ namespace NModbusAsync.Test.Unit
             var targetObj = target.Object;
 
             // Act
-            Task.WaitAll(Task.Run(() => targetObj.Dispose()), Task.Run(() => targetObj.Dispose()));
+            await Task.WhenAll(Task.Run(() => targetObj.Dispose()), Task.Run(() => targetObj.Dispose()));
 
             // Assert
             pipeResource.Verify(x => x.Dispose(), Times.Once());

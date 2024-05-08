@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers;
 using System.IO.Pipelines;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NModbusAsync.IO.Abstractions;
@@ -61,9 +60,17 @@ namespace NModbusAsync.IO
 
         public async Task WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken token)
         {
-            var writeTask = pipeWriter.WriteAsync(buffer, token);
+            var writeValueTask = pipeWriter.WriteAsync(buffer, token);
 
-            if (!writeTask.IsCompleted && !await writeTask.AsTask().WaitAsync(WriteTimeout, token).ConfigureAwait(false))
+            if (writeValueTask.IsCompleted)
+            {
+                _ = await writeValueTask;
+                return;
+            }
+
+            var writeTask = writeValueTask.AsTask();
+
+            if (!await writeTask.WaitAsync(WriteTimeout, token).ConfigureAwait(false))
             {
                 throw new TimeoutException("Failed to write to the transport connection in specified period of time.");
             }
@@ -119,14 +126,20 @@ namespace NModbusAsync.IO
 
         private async Task<ReadResult> ReadAsync(CancellationToken token)
         {
-            var readTask = pipeReader.ReadAsync(token);
+            var readValueTask = pipeReader.ReadAsync(token);
 
-            if (!readTask.IsCompleted && !await readTask.AsTask().WaitAsync(ReadTimeout, token).ConfigureAwait(false))
+            if (readValueTask.IsCompleted)
+            {
+                return await readValueTask;
+            }
+
+            var readTask = readValueTask.AsTask();
+            if (!await readTask.WaitAsync(ReadTimeout, token).ConfigureAwait(false))
             {
                 throw new TimeoutException("Failed to read from the transport connection in specified period of time.");
             }
 
-            return readTask.Result;
+            return await readTask;
         }
     }
 }
