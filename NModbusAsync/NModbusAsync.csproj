@@ -10,11 +10,13 @@ The main difference and advantage of NModbusAsync is that all operations now uti
     <PackageTags>modbus nmodbus tcp master async io</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Copyright>Copyright (c) 2019 Roman Vovk</Copyright>
-    <Version>3.0.0-preview1</Version>
+    <Version>3.0.0-preview2</Version>
     <Authors>Roman Vovk</Authors>
     <PackageReadmeFile>./README.md</PackageReadmeFile>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
   
   <PropertyGroup>
