@@ -6,7 +6,6 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NModbusAsync.IO;
-using NModbusAsync.Test.Helpers;
 using Xunit;
 
 namespace NModbusAsync.Test.Integration
