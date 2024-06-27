@@ -161,7 +161,7 @@ namespace NModbusAsync.Test.Unit
                 .Returns(async () =>
                 {
                     await Task.Delay(1000);
-                    return default;
+                    return 1;
                 });
 
             var streamResourceMock = new Mock<IStreamResource<TcpClient>>();
