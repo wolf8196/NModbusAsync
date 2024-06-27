@@ -146,7 +146,7 @@ namespace NModbusAsync.Test.Unit
             var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>())
             {
                 Retries = 0,
-                RetryOnOldResponseThreshold = 3
+                RetryOnOldTransactionIdThreshold = 3
             };
 
             // Act
@@ -175,7 +175,7 @@ namespace NModbusAsync.Test.Unit
             var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>())
             {
                 Retries = 0,
-                RetryOnOldResponseThreshold = 1
+                RetryOnOldTransactionIdThreshold = 1
             };
 
             // Act
@@ -204,7 +204,7 @@ namespace NModbusAsync.Test.Unit
             var target = new ModbusTcpTransport(pipeAdapterMock.Object, transactionIdProviderMock.Object, Mock.Of<ILogger<IModbusMaster>>())
             {
                 Retries = 0,
-                RetryOnOldResponseThreshold = 2
+                RetryOnOldTransactionIdThreshold = 2
             };
 
             // Act

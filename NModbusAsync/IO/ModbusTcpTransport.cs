@@ -65,11 +65,8 @@ namespace NModbusAsync.IO
 
         protected override bool RetryReadResponse(IModbusRequest request, IModbusResponse response)
         {
-            // Do not retry for these on invalid function code or slave address
-            return request.FunctionCode == response.FunctionCode
-                && request.SlaveAddress == response.SlaveAddress
-                && request.TransactionId > response.TransactionId
-                && request.TransactionId - response.TransactionId < RetryOnOldResponseThreshold;
+            return request.TransactionId > response.TransactionId // response was from a previous request
+                && request.TransactionId - response.TransactionId < RetryOnOldTransactionIdThreshold; // transaction Id differs by threshold
         }
 
         protected override void Validate(IModbusRequest request, IModbusResponse response)
