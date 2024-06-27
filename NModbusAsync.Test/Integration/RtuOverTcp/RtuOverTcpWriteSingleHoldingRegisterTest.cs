@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Xunit.Abstractions;
 
 namespace NModbusAsync.Test.Integration.RtuOverTcp
 {
     [ExcludeFromCodeCoverage]
     public class RtuOverTcpWriteSingleHoldingRegisterTest : WriteSingleHoldingRegisterTest
     {
-        public RtuOverTcpWriteSingleHoldingRegisterTest()
-            : base(RtuOverTpcMaster)
+        public RtuOverTcpWriteSingleHoldingRegisterTest(ITestOutputHelper output)
+            : base(RtuOverTcpMaster, output)
         {
         }
     }

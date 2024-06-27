@@ -2,14 +2,15 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
     public abstract class ReadCoilsTest : IntegrationTest
     {
-        protected ReadCoilsTest(string masterType)
-            : base(masterType, 3)
+        protected ReadCoilsTest(string masterType, ITestOutputHelper output)
+            : base(masterType, 3, output)
         {
             // Arrange
         }

@@ -10,7 +10,6 @@ using NModbusAsync.Devices;
 using NModbusAsync.IO;
 using NModbusAsync.IO.Abstractions;
 using NModbusAsync.Messages;
-using NModbusAsync.Utility;
 using Xunit;
 
 namespace NModbusAsync.Test.Unit

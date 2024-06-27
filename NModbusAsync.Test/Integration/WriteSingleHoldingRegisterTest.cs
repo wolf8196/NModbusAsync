@@ -1,14 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
     public abstract class WriteSingleHoldingRegisterTest : IntegrationTest
     {
-        protected WriteSingleHoldingRegisterTest(string masterType)
-            : base(masterType, 6)
+        protected WriteSingleHoldingRegisterTest(string masterType, ITestOutputHelper output)
+            : base(masterType, 6, output)
         {
             // Arrange
         }
