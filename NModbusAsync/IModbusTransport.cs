@@ -11,7 +11,7 @@ namespace NModbusAsync
         /// after encountering a failure such as an IOException, TimeoutException,
         /// or a corrupt message.
         /// </summary>
-        int Retries { get; set; }
+        uint Retries { get; set; }
 
         /// <summary>
         /// Gets or sets the threshold for retrying on old transaction IDs.

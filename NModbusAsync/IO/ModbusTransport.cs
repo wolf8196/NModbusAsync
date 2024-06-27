@@ -32,7 +32,7 @@ namespace NModbusAsync.IO
 
         public int WriteTimeout { get => PipeResource.WriteTimeout; set => PipeResource.WriteTimeout = value; }
 
-        public int Retries { get; set; }
+        public uint Retries { get; set; }
 
         public uint RetryOnOldTransactionIdThreshold { get; set; }
 
