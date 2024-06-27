@@ -2,14 +2,15 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NModbusAsync.Test.Integration
 {
     [ExcludeFromCodeCoverage]
     public abstract class ReadHoldingRegistersTest : IntegrationTest
     {
-        protected ReadHoldingRegistersTest(string masterType)
-            : base(masterType, 1)
+        protected ReadHoldingRegistersTest(string masterType, ITestOutputHelper output)
+            : base(masterType, 1, output)
         {
             // Arrange
         }

@@ -32,9 +32,11 @@ namespace NModbusAsync.IO
 
         public int WriteTimeout { get => PipeResource.WriteTimeout; set => PipeResource.WriteTimeout = value; }
 
-        public int Retries { get; set; }
+        public uint Retries { get; set; }
 
-        public uint RetryOnOldResponseThreshold { get; set; }
+        public uint RetryOnOldTransactionIdThreshold { get; set; }
+
+        public uint RetryOnInvalidResponseCount { get; set; }
 
         public bool SlaveBusyUsesRetryCount { get; set; }
 
@@ -97,8 +99,12 @@ namespace NModbusAsync.IO
 
                                 if (readAgain)
                                 {
-                                    Logger.LogDebug("Received slave exception code 'Acknowledge' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and retrying to read response. Request: {Request}.", WaitToRetryMilliseconds, request);
-                                    await Task.Delay(WaitToRetryMilliseconds, token).ConfigureAwait(false);
+                                    Logger.LogDebug(
+                                        "Received slave exception code 'Acknowledge' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and retrying to read response. Request: {Request}.",
+                                        WaitToRetryMilliseconds,
+                                        request);
+
+                                    await DelayRetryWithExceptionHandling(token).ConfigureAwait(false);
                                 }
                                 else
                                 {
@@ -137,7 +143,11 @@ namespace NModbusAsync.IO
                         throw;
                     }
 
-                    Logger.LogWarning("Received slave exception code 'SlaveDeviceBusy' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and resubmitting request. Request: {request}.", WaitToRetryMilliseconds, request);
+                    Logger.LogWarning(
+                        "Received slave exception code 'SlaveDeviceBusy' while sending request. Waiting {WaitToRetryMilliseconds} milliseconds and resubmitting request. Request: {Request}.",
+                        WaitToRetryMilliseconds,
+                        request);
+
                     await DelayRetryWithExceptionHandling(token).ConfigureAwait(false);
                 }
                 catch (Exception ex)

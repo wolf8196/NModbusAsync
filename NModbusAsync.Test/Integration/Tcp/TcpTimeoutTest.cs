@@ -4,9 +4,9 @@ using Xunit.Abstractions;
 namespace NModbusAsync.Test.Integration.Tcp
 {
     [ExcludeFromCodeCoverage]
-    public class TcpReadInputsTest : ReadInputsTest
+    public class TcpTimeoutTest : TimeoutTest
     {
-        public TcpReadInputsTest(ITestOutputHelper output)
+        public TcpTimeoutTest(ITestOutputHelper output)
         : base(TcpMaster, output)
         {
         }

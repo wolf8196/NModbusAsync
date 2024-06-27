@@ -86,6 +86,11 @@ namespace NModbusAsync.IO
 
                 if (readResult.Buffer.Length < count)
                 {
+                    if (readResult.IsCanceled)
+                    {
+                        throw new TimeoutException("Failed to read from the transport connection in specified period of time.");
+                    }
+
                     if (readResult.IsCompleted)
                     {
                         throw new PipeReaderCompleteException();
@@ -136,7 +141,7 @@ namespace NModbusAsync.IO
             var readTask = readValueTask.AsTask();
             if (!await readTask.WaitAsync(ReadTimeout, token).ConfigureAwait(false))
             {
-                throw new TimeoutException("Failed to read from the transport connection in specified period of time.");
+                pipeReader.CancelPendingRead();
             }
 
             return await readTask;

@@ -4,9 +4,9 @@ using Xunit.Abstractions;
 namespace NModbusAsync.Test.Integration.RtuOverTcp
 {
     [ExcludeFromCodeCoverage]
-    public class RtuOverTcpReadCoilsTest : ReadCoilsTest
+    public class RtuOverTcpTimeoutTest : TimeoutTest
     {
-        public RtuOverTcpReadCoilsTest(ITestOutputHelper output)
+        public RtuOverTcpTimeoutTest(ITestOutputHelper output)
         : base(RtuOverTcpMaster, output)
         {
         }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using NModbusAsync.Messages.Abstractions;
-using NModbusAsync.Utility;
 
 namespace NModbusAsync.Messages
 {

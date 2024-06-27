@@ -36,6 +36,9 @@ namespace NModbusAsync.IO
             ushort crc = crcCalculator.Calculate(memory.Slice(0, SlaveAddressSize + request.ByteSize));
             BitConverter.TryWriteBytes(memory.Slice(SlaveAddressSize + request.ByteSize, CrcSize).Span, crc);
 
+            // use transaction Id field as read retry counter
+            request.TransactionId = RetryOnInvalidResponseCount <= ushort.MaxValue ? Convert.ToUInt16(RetryOnInvalidResponseCount) : ushort.MaxValue;
+
             await PipeResource.WriteAsync(memory.Slice(0, totalSize), token).ConfigureAwait(false);
         }
 
@@ -72,7 +75,22 @@ namespace NModbusAsync.IO
 
         protected override bool RetryReadResponse(IModbusRequest request, IModbusResponse response)
         {
-            return false;
+            if (request.TransactionId <= 0)
+            {
+                return false;
+            }
+
+            try
+            {
+                request.Validate(response);
+                return false;
+            }
+            catch
+            {
+                --request.TransactionId;
+            }
+
+            return true;
         }
 
         protected override void Validate(IModbusRequest request, IModbusResponse response)
