@@ -69,9 +69,6 @@ namespace NModbusAsync.IO
 
             var attempt = 1;
             var success = false;
-            request.TransactionId = transactionIdProvider.NewId();
-
-            Logger.LogTrace("Sending modbus request. TransactionId: {TransactionId}, Request: {Request}.", request.TransactionId, request);
 
             using var currCallTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token, disposingTokenSource.Token);
             token = currCallTokenSource.Token;
@@ -84,6 +81,9 @@ namespace NModbusAsync.IO
                     await semaphoreSlim.WaitAsync(token).ConfigureAwait(false);
                     try
                     {
+                        request.TransactionId = transactionIdProvider.NewId();
+                        Logger.LogTrace("Sending modbus request. TransactionId: {TransactionId}, Request: {Request}.", request.TransactionId, request);
+
                         await WriteRequestAsync(request, token).ConfigureAwait(false);
 
                         bool readAgain;
@@ -164,6 +164,8 @@ namespace NModbusAsync.IO
                         {
                             throw;
                         }
+
+                        await DelayRetryWithExceptionHandling(token).ConfigureAwait(false);
                     }
                     else
                     {
