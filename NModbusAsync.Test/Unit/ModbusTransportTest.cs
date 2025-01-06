@@ -357,18 +357,14 @@ namespace NModbusAsync.Test.Unit
             target.Protected()
                 .As<IModbusTransportMock>()
                 .Setup(x => x.WriteRequestAsync(request, It.IsAny<CancellationToken>()))
-                .Returns<IModbusRequest, CancellationToken>((r, t) => Task.Delay(5000, t));
+                .Returns<IModbusRequest, CancellationToken>((r, t) => Task.Delay(5000, t)); // delay inside semaphore
 
             // Act
-            var concurrentReads = Enumerable.Range(1, 10).Select(_ => target.Object.SendAsync<ReadHoldingRegistersResponse>(request)).ToArray();
+            var concurrentReads = Enumerable.Range(1, 100)
+                .Select(_ => target.Object.SendAsync<ReadHoldingRegistersResponse>(request)) // multiple concurrent requests; all waiting for one
+                .ToArray();
             target.Object.Dispose();
-
-            int count = 0;
-            while (concurrentReads.Any(x => !x.IsCompleted) && count < 10)
-            {
-                await Task.Delay(100);
-                ++count;
-            }
+            await Task.Delay(100);
 
             // Assert
             Assert.All(concurrentReads, t => Assert.True(t.IsCompleted));
