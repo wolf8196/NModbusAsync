@@ -17,7 +17,7 @@ namespace NModbusAsync.Test.Helpers
                 .Returns(Task.CompletedTask);
         }
 
-        internal static void SetupThrowsWriteRequestAsync(this Mock<ModbusTransport> mock, Exception ex)
+        internal static void SetupThrowWriteRequestAsync(this Mock<ModbusTransport> mock, Exception ex)
         {
             mock.Protected()
                 .As<IModbusTransportMock>()
@@ -68,11 +68,6 @@ namespace NModbusAsync.Test.Helpers
                 sequenceMock
                     .Returns(item);
             }
-        }
-
-        internal static void SetupValidate(this Mock<ModbusTransport> mock, IModbusRequest request, IModbusResponse response)
-        {
-            mock.Protected().As<IModbusTransportMock>().Setup(x => x.Validate(request, response));
         }
     }
 }

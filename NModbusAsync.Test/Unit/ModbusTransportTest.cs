@@ -150,7 +150,7 @@ namespace NModbusAsync.Test.Unit
         {
             // Arrange
             var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<ILogger<IModbusMaster>>()) { CallBase = true };
-            target.SetupThrowsWriteRequestAsync(exception);
+            target.SetupThrowWriteRequestAsync(exception);
 
             // Act
             var ex = await Assert.ThrowsAnyAsync<Exception>(() => target.Object.SendAsync<ReadHoldingRegistersResponse>(
@@ -172,7 +172,7 @@ namespace NModbusAsync.Test.Unit
             var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<ILogger<IModbusMaster>>()) { CallBase = true };
             target.Object.Retries = 2;
 
-            target.SetupThrowsWriteRequestAsync(exception);
+            target.SetupThrowWriteRequestAsync(exception);
 
             // Act
             var ex = await Assert.ThrowsAnyAsync<Exception>(
@@ -195,7 +195,7 @@ namespace NModbusAsync.Test.Unit
             var exception = new Exception();
             target.Object.Retries = 2;
 
-            target.SetupThrowsWriteRequestAsync(exception);
+            target.SetupThrowWriteRequestAsync(exception);
 
             // Act
             var ex = await Assert.ThrowsAnyAsync<Exception>(() => target.Object.SendAsync<ReadHoldingRegistersResponse>(
