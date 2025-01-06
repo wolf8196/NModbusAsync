@@ -1,12 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace NModbusAsync.Test.Integration
 {
-    [ExcludeFromCodeCoverage]
     public abstract class ReadCoilsTest : IntegrationTest
     {
         protected ReadCoilsTest(string masterType, ITestOutputHelper output)

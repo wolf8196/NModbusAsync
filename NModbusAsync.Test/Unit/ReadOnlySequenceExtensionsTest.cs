@@ -1,11 +1,9 @@
 ﻿using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using NModbusAsync.Utility;
 using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class ReadOnlySequenceExtensionsTest
     {
         [Fact]

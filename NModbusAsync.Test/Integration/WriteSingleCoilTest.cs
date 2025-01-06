@@ -1,11 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace NModbusAsync.Test.Integration
 {
-    [ExcludeFromCodeCoverage]
     public abstract class WriteSingleCoilTest : IntegrationTest
     {
         protected WriteSingleCoilTest(string masterType, ITestOutputHelper output)

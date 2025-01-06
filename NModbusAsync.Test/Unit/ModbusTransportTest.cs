@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
@@ -15,7 +14,6 @@ using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class ModbusTransportTest
     {
         [Fact]
@@ -271,7 +269,7 @@ namespace NModbusAsync.Test.Unit
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task DisposesInThreadSafeMannerAsync()
+        public async Task DisposesInThreadSafeManner()
         {
             // Arrange
             var pipeResource = new Mock<IPipeResource>();

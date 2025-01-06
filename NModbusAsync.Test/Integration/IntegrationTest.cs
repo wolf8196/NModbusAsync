@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
@@ -9,7 +8,6 @@ using Xunit.Abstractions;
 
 namespace NModbusAsync.Test.Integration
 {
-    [ExcludeFromCodeCoverage]
     public abstract class IntegrationTest : IDisposable
     {
         public const string TcpMaster = "Tcp";

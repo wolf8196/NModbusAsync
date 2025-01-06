@@ -1,11 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Moq;
+﻿using Moq;
 using NModbusAsync.Devices;
 using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class ModbusDeviceTest
     {
         [Fact]

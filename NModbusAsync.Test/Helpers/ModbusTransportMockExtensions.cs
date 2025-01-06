@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -8,7 +7,6 @@ using NModbusAsync.IO;
 
 namespace NModbusAsync.Test.Helpers
 {
-    [ExcludeFromCodeCoverage]
     internal static class ModbusTransportMockExtensions
     {
         internal static void SetupWriteRequestAsync(this Mock<ModbusTransport> mock, params IModbusRequest[] requests)

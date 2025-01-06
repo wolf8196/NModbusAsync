@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using NModbusAsync.Messages;
 using NModbusAsync.Utility;
 using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class ModbusResponseFactoryTest
     {
         [Fact]
