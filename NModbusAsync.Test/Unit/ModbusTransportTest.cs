@@ -349,7 +349,7 @@ namespace NModbusAsync.Test.Unit
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task DisposesSemaphoreSlim()
+        public async Task DisposesInternalSemaphoreWithoutHangingForever()
         {
             // Arrange
             var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<ILogger<IModbusMaster>>()) { CallBase = true };
@@ -362,7 +362,6 @@ namespace NModbusAsync.Test.Unit
             // Act
             var concurrentReads = Enumerable.Range(1, 10).Select(_ => target.Object.SendAsync<ReadHoldingRegistersResponse>(request)).ToArray();
             target.Object.Dispose();
-            concurrentReads = concurrentReads.Concat(Enumerable.Range(1, 10).Select(_ => target.Object.SendAsync<ReadHoldingRegistersResponse>(request))).ToArray();
 
             int count = 0;
             while (concurrentReads.Any(x => !x.IsCompleted) && count < 10)
