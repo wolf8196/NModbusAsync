@@ -18,10 +18,8 @@ namespace NModbusAsync.Devices
 
             var request = new ReadCoilsRequest(slaveAddress, startAddress, numberOfPoints);
 
-            using (var response = await Transport.SendAsync<ReadCoilsResponse>(request, token).ConfigureAwait(false))
-            {
-                return response.Data.Slice(0, request.NumberOfPoints).ToArray();
-            }
+            using var response = await Transport.SendAsync<ReadCoilsResponse>(request, token).ConfigureAwait(false);
+            return response.Data.Slice(0, request.NumberOfPoints).ToArray();
         }
 
         public async Task<bool[]> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
@@ -30,10 +28,8 @@ namespace NModbusAsync.Devices
 
             var request = new ReadInputsRequest(slaveAddress, startAddress, numberOfPoints);
 
-            using (var response = await Transport.SendAsync<ReadInputsResponse>(request, token).ConfigureAwait(false))
-            {
-                return response.Data.Slice(0, request.NumberOfPoints).ToArray();
-            }
+            using var response = await Transport.SendAsync<ReadInputsResponse>(request, token).ConfigureAwait(false);
+            return response.Data.Slice(0, request.NumberOfPoints).ToArray();
         }
 
         public async Task<ushort[]> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)

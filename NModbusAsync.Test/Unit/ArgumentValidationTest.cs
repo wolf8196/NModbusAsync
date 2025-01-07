@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -14,7 +13,6 @@ using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class ArgumentValidationTest
     {
         [Fact]
@@ -111,7 +109,7 @@ namespace NModbusAsync.Test.Unit
         public async Task ReadCoilsAsyncThrowsOnInvalidNumberOfPoints(ushort numOfPoints)
         {
             // Arrange
-            var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
+            var target = new ModbusMaster(Mock.Of<IModbusTransport>());
 
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
@@ -127,7 +125,7 @@ namespace NModbusAsync.Test.Unit
         public async Task ReadInputsAsyncThrowsOnInvalidNumberOfPoints(ushort numOfPoints)
         {
             // Arrange
-            var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
+            var target = new ModbusMaster(Mock.Of<IModbusTransport>());
 
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
@@ -143,7 +141,7 @@ namespace NModbusAsync.Test.Unit
         public async Task ReadHoldingRegistersAsyncThrowsOnInvalidNumberOfPoints(ushort numOfPoints)
         {
             // Arrange
-            var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
+            var target = new ModbusMaster(Mock.Of<IModbusTransport>());
 
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
@@ -159,7 +157,7 @@ namespace NModbusAsync.Test.Unit
         public async Task ReadInputRegistersAsyncThrowsOnInvalidNumberOfPoints(ushort numOfPoints)
         {
             // Arrange
-            var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
+            var target = new ModbusMaster(Mock.Of<IModbusTransport>());
 
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
@@ -172,7 +170,7 @@ namespace NModbusAsync.Test.Unit
         public async Task WriteMultipleCoilsAsyncThrowsOnNullData()
         {
             // Arrange
-            var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
+            var target = new ModbusMaster(Mock.Of<IModbusTransport>());
 
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentNullException>(
@@ -189,7 +187,7 @@ namespace NModbusAsync.Test.Unit
         public async Task WriteMultipleCoilsAsyncThrowsOnInvalidData(ushort numberOfPoints)
         {
             // Arrange
-            var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
+            var target = new ModbusMaster(Mock.Of<IModbusTransport>());
 
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
@@ -202,7 +200,7 @@ namespace NModbusAsync.Test.Unit
         public async Task WriteMultipleRegistersAsyncThrowsOnNullData()
         {
             // Arrange
-            var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
+            var target = new ModbusMaster(Mock.Of<IModbusTransport>());
 
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentNullException>(
@@ -218,7 +216,7 @@ namespace NModbusAsync.Test.Unit
         public async Task WriteMultipleRegistersAsyncThrowsOnInvalidData(ushort numberOfPoints)
         {
             // Arrange
-            var target = new ModbusMaster(new Mock<IModbusTransport>().Object);
+            var target = new ModbusMaster(Mock.Of<IModbusTransport>());
 
             // Act/Assert
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(

@@ -11,7 +11,6 @@ using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class PipeAdapterTest
     {
         [Fact]

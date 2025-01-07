@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -8,7 +7,6 @@ using NModbusAsync.IO;
 
 namespace NModbusAsync.Test.Helpers
 {
-    [ExcludeFromCodeCoverage]
     internal static class ModbusTransportMockExtensions
     {
         internal static void SetupWriteRequestAsync(this Mock<ModbusTransport> mock, params IModbusRequest[] requests)
@@ -19,7 +17,7 @@ namespace NModbusAsync.Test.Helpers
                 .Returns(Task.CompletedTask);
         }
 
-        internal static void SetupThrowsWriteRequestAsync(this Mock<ModbusTransport> mock, Exception ex)
+        internal static void SetupThrowWriteRequestAsync(this Mock<ModbusTransport> mock, Exception ex)
         {
             mock.Protected()
                 .As<IModbusTransportMock>()
@@ -70,11 +68,6 @@ namespace NModbusAsync.Test.Helpers
                 sequenceMock
                     .Returns(item);
             }
-        }
-
-        internal static void SetupValidate(this Mock<ModbusTransport> mock, IModbusRequest request, IModbusResponse response)
-        {
-            mock.Protected().As<IModbusTransportMock>().Setup(x => x.Validate(request, response));
         }
     }
 }

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using NModbusAsync.Messages;
 using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class MessageValidationTest
     {
         [Theory]

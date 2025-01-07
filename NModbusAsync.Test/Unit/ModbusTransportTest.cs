@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +15,6 @@ using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class ModbusTransportTest
     {
         [Fact]
@@ -152,7 +151,7 @@ namespace NModbusAsync.Test.Unit
         {
             // Arrange
             var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<ILogger<IModbusMaster>>()) { CallBase = true };
-            target.SetupThrowsWriteRequestAsync(exception);
+            target.SetupThrowWriteRequestAsync(exception);
 
             // Act
             var ex = await Assert.ThrowsAnyAsync<Exception>(() => target.Object.SendAsync<ReadHoldingRegistersResponse>(
@@ -174,7 +173,7 @@ namespace NModbusAsync.Test.Unit
             var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<ILogger<IModbusMaster>>()) { CallBase = true };
             target.Object.Retries = 2;
 
-            target.SetupThrowsWriteRequestAsync(exception);
+            target.SetupThrowWriteRequestAsync(exception);
 
             // Act
             var ex = await Assert.ThrowsAnyAsync<Exception>(
@@ -197,7 +196,7 @@ namespace NModbusAsync.Test.Unit
             var exception = new Exception();
             target.Object.Retries = 2;
 
-            target.SetupThrowsWriteRequestAsync(exception);
+            target.SetupThrowWriteRequestAsync(exception);
 
             // Act
             var ex = await Assert.ThrowsAnyAsync<Exception>(() => target.Object.SendAsync<ReadHoldingRegistersResponse>(
@@ -271,7 +270,7 @@ namespace NModbusAsync.Test.Unit
 
         [Fact]
         [Trait("Category", "Unit")]
-        public async Task DisposesInThreadSafeMannerAsync()
+        public async Task DisposesInThreadSafeManner()
         {
             // Arrange
             var pipeResource = new Mock<IPipeResource>();
@@ -346,6 +345,29 @@ namespace NModbusAsync.Test.Unit
             target.Object.WaitToRetryMilliseconds = 1000;
 
             Assert.Equal(1000, target.Object.WaitToRetryMilliseconds);
+        }
+
+        [Fact]
+        [Trait("Category", "Unit")]
+        public async Task DisposesInternalSemaphoreWithoutHangingForever()
+        {
+            // Arrange
+            var target = new Mock<ModbusTransport>(new Mock<IPipeResource>().Object, Mock.Of<ITransactionIdProvider>(), Mock.Of<ILogger<IModbusMaster>>()) { CallBase = true };
+            var request = new ReadHoldingRegistersRequest(1, 1, 1);
+            target.Protected()
+                .As<IModbusTransportMock>()
+                .Setup(x => x.WriteRequestAsync(request, It.IsAny<CancellationToken>()))
+                .Returns<IModbusRequest, CancellationToken>((r, t) => Task.Delay(5000, t)); // delay inside semaphore
+
+            // Act
+            var concurrentReads = Enumerable.Range(1, 100)
+                .Select(_ => target.Object.SendAsync<ReadHoldingRegistersResponse>(request)) // multiple concurrent requests; all waiting for one
+                .ToArray();
+            target.Object.Dispose();
+            await Task.Delay(100);
+
+            // Assert
+            Assert.All(concurrentReads, t => Assert.True(t.IsCompleted));
         }
 
         public static TheoryData<Exception> GetSocketExceptions() => new TheoryData<Exception>

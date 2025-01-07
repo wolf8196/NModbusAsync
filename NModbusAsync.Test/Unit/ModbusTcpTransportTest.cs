@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class ModbusTcpTransportTest
     {
         [Fact]

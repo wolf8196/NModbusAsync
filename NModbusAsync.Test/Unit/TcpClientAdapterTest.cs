@@ -1,11 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using NModbusAsync.IO;
 using Xunit;
 
 namespace NModbusAsync.Test.Unit
 {
-    [ExcludeFromCodeCoverage]
     public class TcpClientAdapterTest
     {
         [Fact]

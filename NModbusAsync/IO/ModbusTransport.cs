@@ -198,7 +198,11 @@ namespace NModbusAsync.IO
                 disposingTokenSource.Dispose();
 
                 PipeResource.Dispose();
-                semaphoreSlim.Dispose();
+                Task.Run(async () =>
+                {
+                    await semaphoreSlim.WaitAsync();
+                    semaphoreSlim.Dispose();
+                });
             }
         }
 
