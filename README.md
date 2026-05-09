@@ -41,7 +41,7 @@ modbusMaster.Transport.Retries = Retries;
 
 ## Acknowledgments
 Most of the code was originally written by the authors of [NModbus](https://github.com/NModbus/NModbus) library.
-Also check out improved version from the original author [NModbus.v4] (https://github.com/NModbus/NModbus.v4)
+Also check out improved version from the original author [NModbus.v4](https://github.com/NModbus/NModbus.v4)
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/wolf8196/NModbusAsync/blob/master/LICENSE) file for details.
